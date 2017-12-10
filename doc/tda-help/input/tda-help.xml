@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This file is part of DobuDish                                           -->
+
+<!-- DobuDish is free software; you can redistribute it and/or modify        -->
+<!-- it under the terms of the GNU General Public License as published by    -->
+<!-- the Free Software Foundation; either version 2 of the License, or       -->
+<!-- (at your option) any later version.                                     -->
+
+<!-- DobuDish is distributed in the hope that it will be useful,             -->
+<!-- but WITHOUT ANY WARRANTY; without even the implied warranty of          -->
+<!-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           -->
+<!-- GNU General Public License for more details.                            -->
+
+<!-- You should have received a copy of the GNU General Public License       -->
+<!-- along with DobuDish; if not, write to the Free Software                 -->
+<!-- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA -->
+
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [<!ENTITY % global.entities SYSTEM "../../../system/custom-xsl/global-entities.xml"> %global.entities; <!ENTITY % entities SYSTEM "../custom-cfg/local-entities.xml"> %entities;]>
+
+<book lang="en">
+    
+    <bookinfo>
+        
+        <title>TDA - Thread Dump Analyzer</title>
+        <pubdate>January, 2010</pubdate>
+        <copyright>
+            <year>2006-2010</year>
+            <holder>Ingo Rockel &lt;irockel@dev.java.net&gt;</holder>
+        </copyright>
+        
+    </bookinfo>
+    
+    
+    <chapter xml:id="general">
+        <title>General</title>
+        <para>
+            <para>
+                This chapter gives an introduction on how to use the TDA - Thread Dump Analyzer. TDA parses your log files and displays all found thread dumps and class histograms reported from a Sun JVM 1.4.x or better, SAP VM or HP-UX VM. Class Histograms are not included in the thread dumps by default but need a special JVM-Flag to be dumped with the thread dump (see below). As TDA does everything offline and thread dumps have very low impact on the VM (including the class histogram option), it can be used for production environments. 
+            <figure>
+                <title>Welcome Screen</title>
+                <imageobject>
+                    <imagedata fileref="welcome.png" format="PNG"/>
+                </imageobject>
+            </figure> 
+            </para>
+            <para>
+                TDA can also be used as plugin in JConsole or VisualVM for requesting thread dumps from a remote virtual machine using JMX. See <link linkend='jconsole'>JConsole Plugin</link> for further information on using it as JConsole Plugin and see <link linkend='visualvm'>VisualVM Plugin</link> for information concerning VisualVM..
+            </para>
+        </para>
+        <sect1 xml:id='runtime'>
+            <title >Request Thread Dumps</title>
+            <para>
+                There are different methods to request a thread dump from a running applications, either using a kill
+                Signal on UNIX, using a little tool on windows, since Java 1.5 using jstack or via Java Management Extensions (JMX).
+            </para>
+            
+            <formalpara>
+                <title>Using a kill-Signal</title>
+                <para>
+                    For requesting a thread dump, you need to send a kill-QUIT-Signal to the Java VM. For this you the PID of the VM is required and then do a <computeroutput>kill -QUIT &lt;PID&gt;</computeroutput> in a Unix Environment. On Windows there is a special tool for accomplishing this, e.g. SendSignal. See the References for a link to the homepage of this tool. It does the same like kill -QUIT on Unix. Note though, if you're using the remote connection on windows, you need to start the connection with <computeroutput>mstsc.exe /console</computeroutput> otherwise you won't have sufficient rights to use
+                    the tool.
+                </para>
+                
+                <para>
+                    The JDK will write the thread-dump to standard-out. E.g. if your application is running in a tomcat, this would be catalina.out in a default tomcat installation. In other situations this might just be the console where the application was started from.
+                </para>
+            </formalpara>
+            <formalpara>
+                <title>Using Java Management Extensions (JMX)</title>
+                <para>
+                    Since Sun's Java Version 1.5 JMX is bundled with the JDK. The JDK also includes a small JMX client application <emphasis>JConsole</emphasis>, which can be used to connect to a running application using JMX. TDA is available as a plugin for JConsole. JMX is also available with VisualVM, a new troubleshooting tool. included in recent Java 1.6 JVM's. See <link linkend='analjconsole'>Application Analysis using JConsole</link> for detailed information on how to use JConsole with the TDA Plugin.
+                </para>
+            </formalpara>
+            <formalpara>
+                <title>Using jstack</title>
+                <para>
+                    Also starting with Sun's JDK 1.5 you can also request a thread dump using the JVM utility jstack. jstack prints the thread dump into the shell window where you called it. To use the dump in TDA, pipe the output into a log file and open this file. To analyze multiple dumps just append them to the log file. jstack also allows you to get thread dumps from javacore-files, either dumped on an <emphasis>OutOfMemoryError</emphasis> or using the JVM tool jmap. On the windows platform this tool is available starting with JDK 1.6. It is not available at all on the linux-ia64 platform.
+                </para>
+            </formalpara>
+        </sect1>
+        <sect1 xml:id='parsing'>
+            <title>Thread Dump Parsing</title>
+            <para>
+                Open the log file you want to analyse, TDA will search for all thread dumps in this log file and displays them in a tree. Up to Sun's JDK 1.5 the VM doesn't log any date information when the dump was requested, you can provide a regular expression in the <emphasis>Preferences</emphasis> which is then used for parsing the lines before the thread dump to get a time stamp (see below for an example). In JDK 1.6 a time stamp is logged just before the dump, the default regular expression is set up to parse this time stamp. In <link linkend='analjconsole'>Regular Expression For Time Stamps</link> you will find information about how to set up your own regular expression for time stamp parsing.
+            </para>
+
+            <figure>
+                <title>Information about the selected dump</title>
+                <imageobject>
+                    <imagedata fileref="info.png" format="PNG"/>
+                </imageobject>
+            </figure> 
+
+            <para>
+                For each thread dump TDA sums up all found threads and all monitors found in the threads, it also groups threads waiting on, for and locking monitors. Clicking on the dump nodes itself will provide you with information about the dump. If there is something special about it, TDA will give you some hints about what it found and what to do next.
+            </para> 
+
+            <figure>
+                <title>Thread Dump View</title>
+                <imageobject>
+                    <imagedata fileref="threaddumps.png" format="PNG"/>
+                </imageobject>
+            </figure> 
+
+            <para>
+                If you want to focus on a lock found in a thread you can just click on the monitor, TDA will then expand the <emphasis>Monitor</emphasis> node of the thread dump and focuses the clicked monitor. It will also give you information about the monitor, if there is something special about, e.g. it has no obvious thread locking the monitor but others waiting for it.
+            </para>
+
+            <para>
+                Starting here you can easily see if a thread is hanging and holding a lock which a lot of other threads are waiting for. If there aren't any locking threads but only waiting threads it is very likely the garbage collector is locking the monitor currently. In this case you will get a hint telling you about this.
+            </para>
+
+            <figure>
+                <title>Monitors used by threads</title>
+                <imageobject>
+                    <imagedata fileref="monitor.png" format="PNG"/>
+                </imageobject>
+            </figure> 
+
+            <para>
+                If you added the -XX:+PrintClassHistogram to the VM-Parameters you will also see the class histogram for a thread dump, presented as node of the dump. Here you can examine all objects in the heap at the time of the thread dump. You can sort this view and filter it using the <emphasis>Filter Expression</emphasis>.
+                <note>
+                    <title>IMPORTANT</title>
+                    <para>There is a bug in early 1.5.x releases preventing the class histogram to be printed if any other than the concurrent mark sweep garbage collector is used.
+                    </para>
+                </note>
+                <figure>
+                    <title>Class Histogram of selected dump</title>
+                    <imageobject>
+                        <imagedata fileref="histogram.png" format="PNG"/>
+                    </imageobject>
+                </figure> 
+                If you use the loggc option with your VM to log the garbage collection information into a different log file, the class histogram will go into this log file instead of standard out and the TDA will not find it by default. To add the class histogram from a loggc file you need to use <emphasis>Open loggc file...</emphasis> in the popup menu of the thread dump pane. TDA will then parse this file backward and adds the found class histograms to the thread dumps starting with the last dump. You can added multiple loggc-files, TDA will then continue after the last one where it added a class histogram with the last loggc-logfile or uses the dump you clicked on. 
+            </para>
+            <para>
+                If your log file contains a lot of thread dumps done during one session of the VM, you can use <emphasis>Find long running threads</emphasis> in the tools menu to extract long running threads from the thread dumps. Currently this does also show waiting threads, so you need to search for threads actually doing something. Use appropriate filters to filter out all idle and uninteresting threads from the result.
+            </para>
+        </sect1>
+        <sect1 xml:id='regex'>
+            <title>Regular Expression For Time Stamps</title>
+            <para>
+                Because the Sun JDK (&lt;=1.5.x) doesn't provide any time information when dumping threads, a regular expression time stamp parsing for each line in the log file is included. TDA matches every line to the regular expression given in the preferences and stores the first matching group if the regular expression matches the line. It then takes the last match found as time stamp for the next thread dump to get a time stamp nearest to the thread dump. An example for such a regular expression is   
+                <programlisting>
+                    (\d\d\/\d\d\/\d\d\s\d\d:\d\d:\d\d).*
+                </programlisting>
+                This expression matches lines like 
+                <programlisting>
+                    06/02/14 14:54:04       at java.lang.Thread.run(Thread.java:534)
+                </programlisting> 
+                TDA takes the first capturing group of the expression as time stamp. In this example the \d is for digits and the capturing group is included in the brackets and matches <i>06/02/14 14:54:04</i>. This is stored as timestamp for the next thread dump. Starting with JDK 1.6 the SUN JDKs print out a time stamp in the line before the dump. There is a default regular expression which recognizes this time stamp.
+            </para>
+            <para>
+                If the timestamp is stored in milliseconds since 1970 there is a checkbox in the preferences <emphasis>Parsed timestamp is a long representing msecs since 1970</emphasis> to tell TDA to convert the parsed time stamp from milliseconds into a human readable time stamp. See <link linkend="references">References</link> for detailed information about the regular expressions in java.
+            </para>
+        </sect1>
+        <sect1 xml:id='filters'>
+            <title>Using Filters</title>
+            <para>
+                To filter out sleeping and uninteresting threads in your view you can use filters to just ignore these threads. For example if you use jgroups in your application and don't want to see als the STACKs and QUEUEs of jgroups you can specify something like that seen in the next screenshot. 
+                <figure>
+                    <title>A filter filtering jgroups threads</title>
+                    <imageobject>
+                        <imagedata fileref="filters.png" format="PNG"/>
+                    </imageobject>
+                </figure> 
+                The status bar will provide information about the number of filtered threads and how many are remaining. Note that changes to the filters only apply after you changed a view. The filter changes will not be applied to the currently displayed thread view.
+            </para>
+            <para>
+                Filters can be used to match different parts of the thread information. You can match or search in stack, title and you can check for the thread state the thread is in. Filters can be including or excluding. The example above is a excluding filter which checks if org.jgroups is in the stack information of a thread.
+            </para>
+            <para>
+                If a specified filter should be applied to all displayed categories, the Default checkbox needs to be checked. Filters which aren't applied to all categories can be used in custom <link linkend="categories">categories</link>.
+            </para>
+        </sect1>
+        <sect1 xml:id='categories'>
+            <title>Using Categories</title>
+            <para>
+                If you have special groups of threads in your application or application environment, e.g. request pool threads, you can define custom thread dump categories for grouping these threads so you can easier access them if you want to check for specific data in these threads.
+                <figure>
+                    <title>A Custom Category</title>
+                    <imageobject>
+                        <imagedata fileref="categories.png" format="PNG"/>
+                    </imageobject>
+                </figure> 
+                The Screenshot shows a custom category grouping all  pool threads in an application using Java NIO as API to parse input stream data. A category consist of at least one filter. For this category a filter <emphasis>JCSNioFilter</emphasis> was defined which filters all these threads and which is inactive as default filter so it isn't applied to the other categories (default and custom ones). If a category doesn't contain any threads it is automatically hidden.
+            </para>
+        </sect1>
+        <sect1 xml:id='deadlocks'>
+            <title>Deadlocks</title>
+            <para>
+                If the JVM finds a java level deadlock in your application it logs this into the thread dump. This information will be displayed in the deadlock node of the dump. There is also a hint concerning the found deadlock(s) in the dump summary. Note though, it doesn't have any deadlock
+                detection for java level deadlocks itself, it relies on the deadlock detection of the VM.
+            </para>
+            <para>
+                TDA also tries to find deadlocks which might be caused by some external resources or some remote communication and can't be found by the Java VM. If there are indication for such a deadlock, TDA will display information concerning this in the dump summury and gives you hints what to do next.
+            </para>
+        </sect1>
+        <sect1 xml:id='sessions'>
+            <title>Sessions</title>
+            <para>
+                If you opened several logfiles and you want to quit TDA and go back to this logfiles later, you can store the open logfiles to a session file. The logfile tree then is dumped into a session file for later usage. You must keep the logfiles if you want to be able to browse them again. For the tree navigation they are not necessary. Note that session are only supported for one version of TDA, they are not exchangeable between different versions.
+            </para>
+        </sect1>
+        <sect1 xml:id='longrunning'>
+            <title>Long Running Threads</title>
+            <para>
+                A common usecase for thread dump analysis is the long running thread detection. TDA offers some help for finding these long running threads. The "Find long running threads" option in the tools menu or from the popup menu in the main tree checks for long running threads in marked thread dumps in the main tree. 
+                <figure>
+                    <title>Long running threads detection</title>
+                    <imageobject>
+                        <imagedata fileref="longrunning.png" format="PNG"/>
+                    </imageobject>
+                </figure> 
+                The analysis is quite simple though, it just compares the thread names and if they match adds the thread to the result. A regular expression can be specified for filtering just the interesting threads. The usual filters are also applied to the result view of the analysis to filter out uninteresting threads. For a useful result appropriate filters should be specified to filter out all sleeping and uninteresting threads.
+            </para>
+            
+            <note>
+                <title>HINT</title>
+                <para>
+                    The long running threads detection is a bit picky about the selected nodes for the detection. You should only select thread dump root nodes otherwise the detection might through an exception as it doesn't know what to do with the selected nodes. You also always should select nodes from one VM run, otherwise you might get quite weird results because the detection matched threads from different VM runs.
+                </para>
+            </note>
+        </sect1>
+        <sect1 xml:id='heavyload'>
+            <title>Heavy Load Analysis</title>
+            <para>
+                If a system is under heavy load, several thread dumps should be taken (e.g. every two minutes over a short period). The threads all have a thread id which can be mapped to real process ID on Linux/Solaris Systems. TDA parses the ID and displays it as "Native ID" in the thread view. Using top in light-weight-process view on Linux and prstat on Solaris with the process id of the java process where the thread dumps came from you can match this native ID to the threads in the dump. This way it is easy to identify threads which produce heavy load as the thread view in top
+                and prstat shows the cpu load of each single thread.
+            </para>
+        </sect1>
+        <sect1 xml:id='jconsole'>
+            <title>JConsole Plugin</title>
+            <para>
+                TDA can be used as plugin in the JVM utility JConsole. Use the following to start JConsole with TDA as plugin: 
+                <programlisting>
+                    jconsole -pluginpath ./tda.jar
+                </programlisting>
+                The javahelp jar <emphasis>jhall.jar</emphasis> needs to be in the same directory as the tda.jar or in the subdirectory <emphasis>lib</emphasis>, otherwise clicking the help button would lead to an exception. The Plugin offers requesting thread dumps from a remote Virtual Machine through JMX. The Dumps areparsed and can be analyzed just like running as standalone-application. The upper-right-frame showing the dump tree has a popup menu offering the plugin features. 
+                <figure>
+                    <title>TDA JConsole Plugin</title>
+                    <imageobject>
+                        <imagedata fileref="jconsole.png" format="PNG"/>
+                    </imageobject>
+                </figure> 
+                The toolbar is also available for convenience, it can be switched off using the popup menu. The requested Thread Dumps can also be stored as Logfile for later offline analysis. The plugin supports requesting thread dumps from 1.5 and 1.6 VMs. The extended informations from 1.6 are not parsed yet though (e.g. informations about locked synchronizers). But they are saved to the logfile also.
+            </para>
+        </sect1>
+        <sect1 xml:id='visualvm'>
+            <title>VisualVM Plugin</title>
+            <para>
+                TDA can also be included into <ulink url="https://visualvm.dev.java.net">VisualVM</ulink>. It is available as plugin from the VisualVM Plugin Center. Note though, if you use jvisualvm from recent Sun JDK's you wont find it in the plugin center but you can still download it manually from the TDA Website from the Document and Files section. All three files available for download need to be installed.
+                <figure>
+                    <title>TDA VisualVM Plugin</title>
+                    <imageobject>
+                        <imagedata fileref="visualvm.png" format="PNG"/>
+                    </imageobject>
+                </figure> 
+                The Plugin attaches itself to the thread dump feature in VVM and offers a TDA View of the application thread dumps and the navigation tree offers a <emphasis>Logfile</emphasis> section, where you can add logfiles containing thread dumps.
+            </para>
+            <para>
+                The TDA help is only available as a limited subset of the full help because VisualVM doesn't include JavaHelp. To get the full help, either download the documentation from the TDA Website or start TDA stand-alone.
+            </para>
+        </sect1>
+    </chapter>
+    <chapter xml:id='appserver'>
+        <title>Analyzing production environments</title>
+        <para>
+            Starting with Sun's JDK 1.5 it is quite easy to get information about a badly behaving application in a production environment using the JVM tools jmap and jstack. Jmap fetches a heap dump from the VM the application is running in and jstack fetches the thread dumps. These information can be taken from the server the application server is running on and analyzed offline. Even without remote access to the server you still can get these dumps from your customer. Many Monitoring tools usually need some kind of remote access.
+        </para>
+        <para>
+            Imagine a customer's web application with a lot of concurrent users accessing the system and the system is under heavy load. The system is only accessed during office hours. But you have noticed the load of the system stays high in the night although nobody is accessing it. What can you do?
+        </para>
+        <sect1>
+            <title>Dumping Information about running threads</title>
+            <para>
+                First of all you can fetch several thread dumps either using jstack or using kill -QUIT if you're using an older VM than 1.5. Using these dumps you can easily detect long running (looping?) threads which might cause the load. You should fetch about five dumps and wait several seconds between fetching, lets say 20 seconds. The command line with jstack then looks something like this 
+                <programlisting>
+                    jstack &lt;pid&gt; &gt; dump.log 
+                </programlisting>
+                for the first dump and
+                <programlisting>
+                    jstack  &gt;&gt; dump.log 
+                </programlisting>
+                for the additional dumps. You then can use the TDA - Thread Dump Analyzer to analyze the thread dumps to get an idea what is currently happening in your application. TDA will try to give you some hints about what might be wrong in the dumps (e.g. a lot of threads are waiting for the garbage collector) like in the screenshot below.
+                
+                <figure>
+                    <title>TDA giving hints about selected dump</title>
+                    <imageobject>
+                        <imagedata fileref="info.png" format="PNG"/>
+                    </imageobject>
+                </figure> 
+                
+                High load without anybody accessing the application usually either means the garbage collector is running endlessly because the application is very low on memory and the garbage collector is unable to free enough memory (TDA will give you a hint on this) or there are some threads (or just one) looping and running endlessly. TDA tries to filter out all idle threads to make it easier for you to find really running threads which are either running or are waiting for some external resources (it will give you a hint regarding the last issue). You need to enable these filters in the filter settings. You might also have a look at the TDA help for additional information.
+            </para>
+            <para>
+                For letting TDA search for long running threads mark the threads dumps you want to analyze and choose the "Find long running" threads option. TDA will then search for threads it finds in the dumps at least n-times, whereas you define n in the setting dialog for the detection. It will then present the result added to the dump tree. You should enable the idle-threads filter to filter out unimportant threads. In the screenshot below you can see a long running thread which is running in an endless loop.
+                <figure>
+                    <title>Long running threads detection</title>
+                    <imageobject>
+                        <imagedata fileref="longrunning.png" format="PNG"/>
+                    </imageobject>
+                </figure> 
+            </para>
+        </sect1>
+
+        <sect1>
+            <title>Long running thread detection on Solaris</title>
+            <para>
+                If your application is running on Solaris and you have remote access to the machine you can even determine directly the thread which might be looping by using prstat -p &lt;app-server-vm-pid&gt;. prstat will show you all threads running in your application and how much CPU time each of them is consuming. The pids shown there (in decimal) can be matched to the nids (in hexadecimal) in the thread dumps.
+            </para>
+        </sect1>
+        <sect1>
+            <title>Analyzing the heap profile</title>
+            <para>
+                I use the YourKit Profiler (commercial but free eval-license for 15 days) to analyze the heap profiles. The tool has the quite handy "Find big objects" option which makes it very easy to find stuff which consumes a lot of memory and shouldn't be there or at least not that big. If you don't want to spend the money though, you can use the JVM tool jhat which starts a small web server, where you can connect to and analyze the heap profile.
+            </para>
+            <para>
+                For a small overview you can also use the class histogram feature of the TDA tool. Use either jstack to fetch a class histogram from your application VM or use the VM-option -XX:+PrintClassHistogram to have it dumped when requesting a thread dump if you are on an 1.4.x VM. Refer to the TDA help for further information.
+            </para>
+        </sect1>
+    </chapter>
+    <chapter xml:id='analjconsole'>
+        <title>Application Analysis using JConsole</title>
+        <para>
+            With JDK 1.5 Sun introduced JConsole, a swing based tool for instrumentalizing the new JMX MBeans for VM analysis in 1.5 and to provide easy remote access to all other JMX MBeans offered (e.g. by the application server or an application). With the release of JDK 1.6 Sun enhanced the utility to also support plugins and simplified access to the applications to analyze. With JConsole it is quite easy to do some application analysis without critical impact on the application.
+        </para>
+        <sect1>
+            <title>Remote application access</title>
+            <para>
+                For enabling remote access to an application using JConsole you need an open port from the machine the application is running on and start the application with this port. To connect to a remote application running with JDK 1.5 you need to specify something like this:
+                <programlisting>
+                    -Dcom.sun.management.jmxremote.port=5555 
+                    -Dcom.sun.management.jmxremote 
+                    -Dcom.sun.management.jmxremote.authenticate=false 
+                    -Dcom.sun.management.jmxremote.ssl=false
+                </programlisting>
+                I have done this for connecting to an Oracle Application Server 10.1.3.2 instance. Note: this is not the recommended setting for an production environment as is insecure. Read the jconsole documentation on how to set up a secure connection to a JVM. 
+            </para>
+        </sect1>
+        <!-- Fig 1. Remote connection to an Oracle AS 10.1.3.2 -->
+        <sect1>
+            <title>Requesting Dumps</title>
+            <para>
+                Since the 1.6 release it is also quite easy to request heap and thread dumps. 
+                
+                <!-- Fig 2. Requesting a heap dump -->
+                These Dumps then can be parsed by tools like the SAP Memory Analyzer to analyze heap dumps and tools like Samurai or my TDA for thread dumps.
+            </para>
+        </sect1>
+        <sect1>
+            <title>Plugins For JConsole</title>
+            <para>
+                One interesting plugin currently available publically is an enhanced JTop Plugin (based on a demo plugin from the jdk samples). JConsole doesn't display any information about the cpu usage of the threads running in a JVM, it only displays a graph about the overall cpu usage. The JTop plugin shows enhanced information about the cpu utilization of all threads running in a JVM just like top does for processes on unix plattforms. 
+                
+                <!-- Fig 3. JTop Plugin -->
+                The enhanced JTop plugin can be downloaded from Peter Doornbosch's Blog.
+            </para>
+        </sect1>
+    </chapter>
+    <appendix xml:id="references">
+        <title>References</title>
+        <para>
+            <orderedlist numeration="lowerroman">
+                <listitem><ulink url="http://www.tagtraum.com/gcviewer.html">GC-Viewer</ulink></listitem>
+                <listitem><ulink url="http://visualvm.dev.java.net/">VisualVM</ulink></listitem>
+                <listitem><ulink url="http://java.sun.com/j2se/1.5.0/docs/guide/management/jconsole.html">JConsole</ulink></listitem>
+                <listitem><ulink url="http://java.sun.com/j2se/1.4.2/docs/api/index.html">Java API Specification 1.4.2</ulink> (for regular expressions look for <emphasis>Pattern</emphasis> class.)</listitem>
+                <listitem><ulink url="http://www.latenighthacking.com/projects/2003/sendSignal/">SendSignal</ulink></listitem>
+                <listitem><ulink url="http://www.jroller.com/dumpster">Dumpster (my blog)</ulink></listitem>
+            </orderedlist>
+        </para>
+    </appendix>
+</book>

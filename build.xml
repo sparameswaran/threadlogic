@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="build" name="ThreadLogic-dev">
+	<property environment="env"/>
+	<property name="debuglevel" value="source,lines,vars"/>
+	<property name="target" value="1.6"/>
+	<property name="source" value="1.6"/>
+	<property name="dist" value="dist"/>
+
+  <!--
+  <property file="version.properties"/>
+  -->
+
+	<tstamp>
+		<format property="TODAY" pattern="MM/dd/yyyy" locale="en,US" />
+	</tstamp>
+
+	<path id="ThreadLogic.classpath">
+		<pathelement location="bin"/>
+		<pathelement location="lib/javahelp-2.0.02.jar"/>
+		<pathelement location="lib/jconsole.jar"/>
+	</path>
+	<target name="init">
+		<mkdir dir="bin"/>
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src/java">
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>
+	</target>
+	<target name="clean">
+		<delete dir="bin"/>
+	</target>
+	<target name="load-git-revinfo">
+    <exec executable="./git-revision.sh" dir="${basedir}" outputproperty="git.version"/>
+		<property name="revision" value="${git.version}"/>
+		<echo>REV IS: ${revision}</echo>
+	</target>
+
+	<target name="jar" description="Create JAR">
+		<jar jarfile="${dist}/ThreadLogic-${revision}.jar" basedir="bin" excludes="threadlogic.bat, threadlogic.sh">
+			<manifest>
+				<attribute name="Main-Class" value="com.oracle.ateam.threadlogic.ThreadLogic" />
+				<attribute name="Implementation-Vendor" value="Sabha Parameswaran"/>
+				<attribute name="Implementation-Title" value="ThreadLogic"/>
+				<attribute name="Implementation-Version" value="${revision}" />
+				<attribute name="Build-Date" value="${TODAY}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target depends="clean" name="cleanall" />
+	<target depends="load-git-revinfo,build-subprojects,build-project,jar" name="build" />
+	<target name="build-subprojects" />
+	<target depends="init" name="build-project">
+		<echo message="${ant.project.name}: ${ant.file}"/>
+		<javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+			<src path="src/java"/>
+			<classpath refid="ThreadLogic.classpath"/>
+		</javac>
+		<mkdir dir="bin/resources"/>
+		<copy todir="bin/resources">
+			<fileset dir="src/none/resources"/>
+		</copy>
+	</target>
+	<target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+	<target name="ThreadLogic">
+		<java classname="com.oracle.ateam.threadlogic.ThreadLogic" failonerror="true" fork="yes">
+			<classpath refid="ThreadLogic.classpath"/>
+		</java>
+	</target>
+</project>

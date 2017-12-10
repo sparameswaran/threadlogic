@@ -1,0 +1,1731 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : AdvisoryMap.xml
+    Created on : February 16, 2012, 1:50 AM
+    Author     : saparam
+    Description:
+        Advisory Map detailing the known advisories.
+-->
+
+<!--
+
+Advisory is used to tag threads that match or display certain characteristics
+The behavior might be coming from the thread (name/stack/state) or a combination of conditions (like multiple threads blocked for same lock or it got marked as STUCK etc). Each of the advisory has an associated health level that can be used to filter/analyze or build on for further analysis.
+
+Each Advisory entry has a Name, Health, Keyword (pattern to search against), Description and Advice
+The Name is used as short id/reference to an Advice 
+The Health can be one of the following - IGNORE, NORMAL, WATCH, WARNING, FATAL (increasing level of severity)
+The Thread with a certain set of advisories is marked with the health level that matches the most severe of its tagged advisories.
+Similarly, the most severe advisory across multiple threads in the thread group are promoted to the group and so on to the Thread dump
+
+The keyword is the pattern or marker to look for in a thread. It can be in thread stack content or in the thread name/labels etc.
+The keyword can be a package, classname, method name combination or just a specific method name that can be a unique identifier for that specific advisory.
+Example:
+	<Advisory>
+		<Name>NIO Select</Name>
+		<Health>IGNORE</Health>
+		<Keyword>sun.nio.ch.SelectorImpl.select</Keyword>
+		<Descrp>Using Native IO via Select or Poll</Descrp>
+		<Advice>Ignore</Advice>
+	</Advisory>
+  
+Use . (period) instead of / package paths in the keyword entry.
+Use wildcard as needed; Use . (period character) for escaping $, ?, _ etc.
+
+The advisory is a match for a thread when the keyword search against the thread is successful.
+There can be multiple keywords separated by a ", ". 
+For example:
+
+<Advisory>
+  <Name>DB Execute</Name>
+  <Health>WATCH</Health>    
+  <Keyword>PreparedStatement.execute, Statement.executeQuery</Keyword>
+  <Descrp>Executing operation or query on DB</Descrp>
+  <Advice>Check/Monitor Database SQL Executions if it takes longer and also check for socket connection disruption to database if thread continues to show same pattern</Advice>
+</Advisory>
+
+In above example, there are 2 keywords (PreparedStatement.execute and Statement.executeQuery) both covering some form of DB operation
+
+The next entry is the Descrp which is a just a textual description of the advisory
+The last entry is the Advice - as to actions or solutions can be applied.
+
+For multi-line pattern, use PatternA.*PatternB to match against all lines that start off 
+with PatternA with some content in the middle and ending with PatternB.
+Use with caution as it can do greedy grab of everything within the specified patterns.
+Example:
+
+  
+The Name of the advice can be used within the GroupDefns to downgrade certain advisories for specific thread groups.
+Ensure the Advice Name in AdvisoryMap matches with the AdvisoryId inside GroupDefns.
+Example:
+
+<ComplexGroup>
+  <Name>Oracle AQ Adapter</Name>
+  <Visible>true</Visible>
+  <Inclusions>
+    <SimpleGroupId>Oracle AQ AdapterTemp</SimpleGroupId>
+  </Inclusions>
+  <Exclusions>
+    <SimpleGroupId>Oracle SOA DFW</SimpleGroupId>
+  </Exclusions>
+  <ExcludedAdvisories>
+    <AdvisoryId>DB Execute</AdvisoryId>
+    <AdvisoryId>Socket Read</AdvisoryId>
+  </ExcludedAdvisories>        
+</ComplexGroup>
+
+In the above example, DB Execute and Socket Read Advisories are excluded for the thread group: Oracle AQ Adapter
+as the AQ Adapter threads basic functionality is to poll for data from DB over sockets repeatedly and its their normal behavior.
+
+Note: Avoid using '&' as it would confuse the XML Parser and result in exceptions.
+If '&' is really required, use &amp;
+
+-->
+
+
+<tlogic:AdvisoryMap xmlns:tlogic="http://java.net/projects/threadlogic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+xmlns="http://java.net/projects/threadlogic">
+  <Advisory>
+    <Name>WLS Synchronous JMS Receiver</Name>
+    <Health>WARNING</Health>
+    <Keyword>JMSConsumer.receiveNoWait</Keyword>
+    <Descrp>WLS Synchronous JMS Receiver</Descrp>
+    <Advice>Prefer Asynchronous JMS Receivers over Synchronous Receivers (register as MessageListener or use MDBs) as async model scales well</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>JMS Producer Flow control</Name>
+    <Health>WARNING</Health>
+    <Keyword>weblogic.jms.client.JMSProducer.doFlowControl</Keyword>		         
+    <Descrp>Producer message flow is controlled (slowed down)</Descrp>
+    <Advice>Try to maintain equilibrium between producers and consumers by speeding up consumers or slowing down producers; Tune the flow control configuration parameters as needed </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS MDB</Name>
+    <Health>NORMAL</Health>
+    <Keyword>MDListener.onMessage, MDListener.execute</Keyword>
+    <Descrp>WLS MDB Execution</Descrp>
+    <Advice>MDB received a message and is executing onMessage call</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Publisher</Name>
+    <Health>NORMAL</Health>
+    <Keyword>JMSSession.createProducer</Keyword>
+    <Descrp>WLS JMS Publiser creation</Descrp>
+    <Advice>Attempting to create a WLS JMS Publisher to send message</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Bottleneck among threads</Name>
+    <Health>WARNING</Health>
+    <Keyword>BlockedThreads</Keyword>
+    <Descrp>High Contention for Locks among threads creating a performance bottleneck</Descrp>
+    <Advice>Check and avoid contention in locks, modify code or conditions (Debugs possibly turned on); Increase the number of contended resources via increased pool size/caching</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Finalizer Thread Blocked</Name>
+    <Health>FATAL</Health>
+    <Keyword>Finalizer.doFinalize</Keyword>
+    <Descrp>Finalizer Thread Blocked</Descrp>
+    <Advice>Check if the Finalizer Thread is blocked for a lock which can lead to wasted memory waiting to be reclaimed from Finalizer Queue; If using SOA and finalizer blocked for lock on HTTPClient.StreamDemultiplexor, apply bug fixes: 16810628 and 11888645</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Server Shutdown</Name>
+    <Health>WATCH</Health>
+    <Keyword>T3Srvr.shutdown</Keyword>
+    <Descrp>WLS Server shutting down</Descrp>
+    <Advice>Check if the server is shutting down due to user activity or due to failures (OOM/Error conditions)</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS T3Server Thread</Name>
+    <Health>IGNORE</Health>
+    <Keyword>T3Srvr.waitForDeath</Keyword>
+    <Descrp>Thread will wait till it receives shutdown signal to stop the WLS Server </Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Random Number Seed generation Slow</Name>
+    <Health>WARNING</Health>
+    <Keyword>SecureRandom.generateSeed</Keyword>
+    <Descrp>Slow in generating Random Seed Number for security</Descrp>
+    <Advice>Use -Djava.security.egd=file:/dev/./urandom in non-Production Environment</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Idle Thread</Name>
+    <Health>IGNORE</Health>
+    <Keyword>ExecuteThread.waitForRequest</Keyword>
+    <Descrp>WebLogic Idle Thread waiting for new request</Descrp>
+    <Advice>Ignore - its an idle thread waiting for a new request to execute</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>SOA Idle Thread</Name>
+    <Health>IGNORE</Health>
+    <Keyword>SOAIdleThread</Keyword>
+    <Descrp>SOA Idle Thread</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Publish JMS Messages</Name>
+    <Health>NORMAL</Health>
+    <Keyword>JMSProducer.send</Keyword>
+    <Descrp>Publish JMS messages</Descrp>
+    <Advice>Normal Behavior for JMS Producer</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Classloading</Name>
+    <Health>WATCH</Health>
+    <Keyword>GenericClassLoader.loadClass</Keyword>
+    <Descrp>WLS Classloader loading classes</Descrp>
+    <Advice>Check for excessive or repeated classloading if it occurs even after server has been up and running for sometime.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Msg Producer</Name>
+    <Health>NORMAL</Health>
+    <Keyword>weblogic.jms.client.JMSProducer.send</Keyword>
+    <Descrp>WLS Producer client sending JMS Message</Descrp>
+    <Advice>Normal behavior</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Mercury Diagnostics</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.mercury.diagnostics</Keyword>
+    <Descrp>Mercury Diagnostics instrumentation enabled</Descrp>
+    <Advice>Mercury Diagnostics instrumentation has been enabled; Ensure it does not consume too much memory or uses too fine grained instrumentation that it slows down performance</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>EOF Exception in socket read</Name>
+    <Health>WARNING</Health>
+    <Keyword>SocketMuxer.deliverEndOfStream</Keyword>
+    <Descrp>WLS Muxer got an abrupt End of Stream while reading from a Socket</Descrp>
+    <Advice>Check for connection disruptions between Server and Client (or other server instances)</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Socket Write</Name>
+    <Health>WATCH</Health>
+    <Keyword>SocketOutputStream.write</Keyword>
+    <Descrp>Socket Write</Descrp>
+    <Advice>Check for slowness/network outage/firewall drops sockets if these sockets are to DB or External/Remote Services; or other cluster members (ignore for DB Pollers or Http Servlet threads)</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Remote Server Disconnection</Name>
+    <Health>WARNING</Health>
+    <Keyword>PeerGoneException</Keyword>
+    <Descrp>Remote Server disconnected</Descrp>
+    <Advice>Remote Server or client disconnected abruptly, diagnose why from errors/network level</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Muxer execution</Name>
+    <Health>NORMAL</Health>
+    <Keyword>SocketMuxer.processSockets</Keyword>
+    <Descrp>WebLogic Muxer Thread blocked or handling sockets</Descrp>
+    <Advice>Check if its blocked for non-Muxer related locks or only doing routine polling as part of processSockets() call</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>LDAP Connection</Name>
+    <Health>NORMAL</Health>
+    <Keyword>LDAPConnThread.run</Keyword>
+    <Descrp>LDAP Connection Thread</Descrp>
+    <Advice>Ignore if doing default socket reads</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Stuck Thread</Name>
+    <Health>FATAL</Health>
+    <Keyword>STUCK</Keyword>
+    <Descrp>Thread is Stuck, request taking very long time to finish</Descrp>
+    <Advice>Check why the thread or call is taking very long??; Is it blocked for unavailable or bad resource or contending for Lock?; Can be ignored if it is doing repeat work in a loop; (like adapter threads polling for events in a infinite loop)...</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>IWay Adapter Endpoint Deactivation</Name>
+    <Health>WATCH</Health>
+    <Keyword>afjca15.AbstractResourceAdapter.endpointDeactivation</Keyword>
+    <Descrp>IWay Adapter Endpoint Deactivation invoked</Descrp>
+    <Advice>IWay Adapter endpoint is getting deactivated, there would be service disruption,; Ensure the call completes by checking in successive thread dumps</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Stellent WCM</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.stellent.wcm</Keyword>
+    <Descrp>Stellent web content management</Descrp>
+    <Advice>Web application is using Stellent web content management; Review against Stellent WCM related best practices</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Msg Receive</Name>
+    <Health>NORMAL</Health>
+    <Keyword>weblogic.messaging.kernel.internal.QueueImpl.receive</Keyword>
+    <Descrp>WLS receiving incoming JMS Message</Descrp>
+    <Advice>Normal behavior</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Socket Connection to unreachable endpoint</Name>
+    <Health>WARNING</Health>
+    <Keyword>SocketImpl.socketConnect, PlainSocketImpl.socketCreate</Keyword>
+    <Descrp>Opening a socket connect</Descrp>
+    <Advice>Check if remote service is up or accepting connections or endpoint/url is wrongly defined; as the socket connection establishment should generally be quick and fast.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB HTTP Proxy</Name>
+    <Health>NORMAL</Health>
+    <Keyword>HttpTransportServlet.service</Keyword>
+    <Descrp>OSB HTTP Proxy Execution</Descrp>
+    <Advice>Normal OSB Proxy Service inbound call</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Tuxedo Interaction</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.bea.wli.sb.transports.tuxedo.TuxedoOutboundMessageContext</Keyword>
+    <Descrp>OSB outbound to Tuxedo Service</Descrp>
+    <Advice>Normal OSB outbound call to Tux</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Publish Action</Name>
+    <Health>NORMAL</Health>
+    <Keyword>stages.publish.runtime.PublishRuntimeStep</Keyword>
+    <Descrp>OSB Publish Execution</Descrp>
+    <Advice>Normal OSB Publish Service outbound call</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB handling response</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.bea.wli.sb.pipeline.RouterCallback.onReceiveResponse</Keyword>
+    <Descrp>OSB handling response</Descrp>
+    <Advice>Normal OSB response handling</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>OSB Proxy waiting for response</Name>
+    <Health>WATCH</Health>
+    <Keyword>PipelineContextImpl.SynchronousListener.waitForResponse</Keyword>
+    <Descrp>OSB Proxy waiting for response to WebSerice Callout or Publish </Descrp>
+    <Advice>Ensure backend can respond in timely fashion; Service Callouts and Sync Publish requires 2 threads for every outbound call:; Invoking thread blocking for response notification; and another thread handling the actual response and then notifying the first waiting thread; Under heavy load, there might not be any ready thread to handle the response and notify the caller thread; If there are multiple threads demonstrating similar behavior of waiting for response,; configure the Business Service with Dispatch Policy to use a custom WM with Min Thread Constraints (in SBConsole -- Business Service -- HTTP Transport Configuration page) to avoid thread starvation issues. The Min Thread constraint can be low (under 5) and shared across multiple Business Services (invoked via Service callout) also as it will be used for real short interval to notify the waiting service callout thread. </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Service Response Cache lookup</Name>
+    <Health>WATCH</Health>
+    <Keyword>com.bea.wli.sb.service.resultcache.ResultCache.get</Keyword>
+    <Descrp>OSB attempting to lookup cached service response from Coherence layer</Descrp>
+    <Advice>OSB is attempting to check for a cached service response from Coherence layer,; Should return immediately and not get into waiting or blocked state</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>OSB Service Response save in cache </Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.bea.wli.sb.service.resultcache.ServiceResultCacheImpl.addToCache</Keyword>
+    <Descrp>OSB is attempting to cache a service response inside Coherence layer</Descrp>
+    <Advice>OSB is attempting to a cache a service response into Coherence layer,; Should return immediately and not get into waiting or blocked state</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Java Callout </Name>
+    <Health>NORMAL</Health>
+    <Keyword>stages.transform.runtime.JavaCalloutRuntimeStep</Keyword>
+    <Descrp>OSB Proxy service invoking Java Callout</Descrp>
+    <Advice>Normal java callout activity</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>XPath Contention</Name>
+    <Health>WARNING</Health>
+    <Keyword>a java.lang.Class for org.apache.xmlbeans.impl.store.Path, org.apache.xmlbeans.impl.store.Path.getCompiledPath</Keyword>
+    <Descrp>Apache XMLBeans might be hitting static synchronized method during xpath execution</Descrp>
+    <Advice>Apply Bug #9727796 if threads appear blocked in xpath compilation</Advice>
+  </Advisory> 
+  <Advisory>
+    <Name>WLS JMS Paging</Name>
+    <Health>WARNING</Health>
+    <Keyword>mesaging.kernel.internal.PagingImpl</Keyword>
+    <Descrp>WebLogic JMS paging messages to disk</Descrp>
+    <Advice>
+       WLS might have started paging message to disk either because consumers cannot keep up with producers and messages have started accumulating increasing memory pressure or for temporary storage due to delayed delivery; Paging will slow down performance; Increase, speed up or tune consumers or use flow controls/quotas to slow down producers and in-flow rates; Or increase number of servers to share the load. 
+    </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Client JMX registration</Name>
+    <Health>WARNING</Health>
+    <Keyword>RuntimeMBeanDelegate.unregister.*FESession.close, RuntimeMBeanDelegate.register.*FESession.producerCreate</Keyword>
+    <Descrp>WebLogic JMS clients are getting (un)registered with JMX Server</Descrp>
+    <Advice>
+       If JMS producers/consumers are continuously created and destroyed, these will lead to excess calls to register/unregister the clients in the JMX system with synchronization and lead to slow down, unnecessary bottlenecks and inefficient use of server resources; Use Weblogic JMS Wrapper mechanism to use pooling and avoid repeat creation of jms clients.
+    </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Session cleanup</Name>
+    <Health>WARNING</Health>
+    <!--
+		<Keyword>JMSSession.waitForState.*JMSSession.stop.*WLConnectionImpl.stop.*JMSConnectionPoller.stopJMSConnection, JMSSession.waitForState.*JMSSession.stop.*JMSSessionPoolTester.close</Keyword>
+    -->
+    <Keyword>JMSSession.waitForState.*JMSSession.stop</Keyword>
+    <Descrp>WebLogic JMS session needs to be stopped before cleanup</Descrp>
+    <Advice>
+       JMS Connection poller or SessionPoolTester has detected remote connections to a jms destination is down and is attempting to stop the session before cleaning it up but as the session is in use, it has to wait; This can potentially lead to deadlocks if the Session is continuously in use or is waiting for a lock that is held by JMSConnectionPoller/SessionPoolTester detection thread or some others. Contact support for relevant patches if multiple threads start to block waiting for locks held by this thread.
+    </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Handle new WLS Request</Name>
+    <Health>NORMAL</Health>
+    <Keyword>ConnectionManager.dispatch</Keyword>
+    <Descrp>Dispatching a new request for execution</Descrp>
+    <Advice>Check if request is getting executed or blocked waiting for a resource</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle JDBC Connection Creation</Name>
+    <Health>WARNING</Health>
+    <Keyword>oracle.jdbc.driver.T4CConnection.connect</Keyword>
+    <Descrp>Oracle JDBC Connection creation</Descrp>
+    <Advice>Ensure JDBC Connections are created and pooled and does not get recreated newly each time under load; If the pool size was small and its growing, then its okay; Would be advisable to set the initial pool capacity to a larger size at cost of startup time</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Cluster MessageReceiver Thread</Name>
+    <Health>NORMAL</Health>
+    <Keyword>MessageReceiverRunning</Keyword>
+    <Descrp>Cluster MessageReceiver Thread</Descrp>
+    <Advice>This thread should be very quick in processing and scheduling appropriate work; If this thread continues to be RUNNING across thread dumps, there is likely a bug somewhere.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Unicast Cluster messaging</Name>
+    <Health>NORMAL</Health>
+    <Keyword>weblogic.cluster.messaging.internal.GroupImpl</Keyword>
+    <Descrp>Using Unicast messaging for Cluster</Descrp>
+    <Advice>Normal group communication within unicast cluster</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Unicast Cluster unhealthy</Name>
+    <Health>FATAL</Health>
+    <Keyword>SocketImpl.*weblogic.cluster.messaging.internal.GroupImpl</Keyword>
+    <Descrp>Unicast messaging among Cluster members is not healthy</Descrp>
+    <Advice>Unicast group members are unable to communicate properly, apply latest Unicast related patches and enable Message Ordering or switch to Multicast</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Cluster unhealthy</Name>
+    <Health>WARNING</Health>
+    <Keyword>WLS Cluster unhealthy</Keyword>
+    <Descrp>WLS Clustering subystem might be unhealthy</Descrp>
+    <Advice>If using Unicast, apply latest Unicast related patches and enable Message Ordering or switch to Multicast</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Cluster HTTP Statedump</Name>
+    <Health>WATCH</Health>
+    <Keyword>weblogic.cluster.HTTPExecuteRequest</Keyword>
+    <Descrp>WLS Cluster might be unhealthy</Descrp>
+    <Advice>If using Unicast, apply latest Unicast related patches and enable Message Ordering or switch to Multicast; If using Multicast, servers might not be communicating well due to excessive GCs or other issues, check all cluster members health</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Cluster DB Leasing</Name>
+    <Health>NORMAL</Health>
+    <Keyword>weblogic.cluster.singleton.DatabaseLeas</Keyword>
+    <Descrp>WLS Cluster using DB for managing leases</Descrp>
+    <Advice>Ensure database connectivity is healthy to maintain leases</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>DB Execute</Name>
+    <Health>WATCH</Health>    
+    <Keyword>Statement.execute, Statement.fetch</Keyword>
+    <Descrp>Executing operation or query on DB</Descrp>
+    <Advice>Check/Monitor Database SQL Executions if it takes longer and also check for socket connection disruption to database; if the thread continues to show same pattern or remains stuck (use AWR reports to debug)</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Native Select Poller</Name>
+    <Health>NORMAL</Health>
+    <Keyword>SelectorImpl.select</Keyword>
+    <Descrp>Poller Thread doing Native Select for socket events</Descrp>
+    <Advice>Poller Thread</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>JRockit needs Memory</Name>
+    <Health>WATCH</Health>
+    <Keyword>Allocator.nativeGetNewTLA</Keyword>
+    <Descrp>JRockit VM is trying to allocate TLA memory</Descrp>
+    <Advice>Allocate more heap/memory, watch more closely for OOM/insufficient memory if pattern occurs in multiple threads or thread dumps; Ensure fixed nursery size is specified using -Xns parameter (rather than continously resizing) and specify -Xverbose:gcpause,memory,memdbg to get detailed gc metrics; if TLA min and preferred sizes are specified, remove min and reduce preferred size</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Threaddump generation</Name>
+    <Health>IGNORE</Health>
+    <Keyword>oracle.dfw.impl.dump.ThreadDump, sun.management.ThreadImpl.getThreadInfo</Keyword>
+    <Descrp>Generating thread dump</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Test health of JDBC Connection</Name>
+    <Health>WATCH</Health>
+    <Keyword>ConnectionEnv.testInternal</Keyword>
+    <Descrp>Testing JDBC Connection from Pool</Descrp>
+    <Advice>Check the outcome of Connection testing in a subsequent thread dump or stack trace of the testInternal() call; Configure Seconds to Trust Idle Connection to 10 seconds to avoid repeat test of active connections</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Multicast Receive</Name>
+    <Health>IGNORE</Health>
+    <Keyword>MulticastFragmentSocket.receive</Keyword>
+    <Descrp>WLS Multicast Announcement Receiver</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Thread Creation</Name>
+    <Health>WATCH</Health>
+    <Keyword>lang.Thread.start</Keyword>
+    <Descrp>Creation of new Thread</Descrp>
+    <Advice>Check why and who is spawning off new threads, use WorkManager/ThreadPool for reusing threads more efficiently</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>File Read</Name>
+    <Health>WATCH</Health>
+    <Keyword>FileInputStream.read</Keyword>
+    <Descrp>Thread doing File Read</Descrp>
+    <Advice>Check for slowness if pattern continues</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Muxer in Wait or Parking Condition</Name>
+    <Health>WARNING</Health>
+    <Keyword>MuxerWaiting</Keyword>
+    <Descrp>WLS Muxer waiting for or parked for event/condition</Descrp>
+    <Advice>WLS Muxer is unhealthy and should not wait for a event/condition; One muxer thread should be running (typically in poll) while holding a lock and the other threads waiting to get the lock; If the thread is waiting on a WebLogic Socket Muxer related internal resource (example: weblogic.socket.PosixSocketInfo$FdStruct) then ignore the warning else its likely a bug.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Transaction rollback</Name>
+    <Health>WATCH</Health>
+    <Keyword>ServerTransactionImpl.globalRollback</Keyword>
+    <Descrp>Server rolling back Transaction</Descrp>
+    <Advice>Check why there is rollback happening from the server logs; Are resources not ready/unhealthy/disrupted/connectivity issues??</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Queue Contention</Name>
+    <Health>WARNING</Health>
+    <Keyword>WLSJMSQueueBottleneck</Keyword>
+    <Descrp>Contention for WLS JMS Queue</Descrp>
+    <Advice>Multiple threads are blocked trying to get lock on the WLS JMS Queue, impeding production or consumption of messages till the lock gets relinquished; This can happen if there are selectors holding lock on the queue or there are other changes to the queue itself; Check the thread owning lock on the Queue.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Session waiting to be destroyed</Name>
+    <Health>WARNING</Health>
+    <Keyword>JMSSession.waitForState</Keyword>
+    <Descrp>WLS JMS Session waiting for usage to end before getting cleaned up</Descrp>
+    <Advice>Indicates the session is still in use and cannot be cleaned up; Can potentially lead to a circular deadlock condition if the user of the session is blocked for a resource;  which is held by the first thread waiting for session usage to end</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Cluster member status change</Name>
+    <Health>WARNING</Health>
+    <Keyword>weblogic.jms.dd.DDMemberStatusSharer.memberStatusChange</Keyword>
+    <Descrp>WLS JMS Cluster has undergone some change - either change (add/drop) in cluster membership or change in consumers/producers. This can be seen during cluster start when members join the cluster. Can signify cluster instability or messaging. </Descrp>
+    <Advice>Ensure cluster members or clients are not getting added/dropped too frequently after cluster has been up. Turn ON Cluster and JMS related debugs if there are repeat drop in clients</Advice>
+  </Advisory>
+  
+  <Advisory>
+    <Name>SOAP outbound calls from SOA</Name>
+    <Health>NORMAL</Health>
+    <Keyword>HttpSOAPConnection.post</Keyword>
+    <Descrp>SOA Layer making HTTP SOAP Outbound call</Descrp>
+    <Advice>Check for slowness in remote webservice if pattern continues</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>SOAP outbound calls from WLS</Name>
+    <Health>NORMAL</Health>
+    <Keyword>SOAPHttpURLConnection.getInputStream</Keyword>
+    <Descrp>WLS making HTTP SOAP Outbound call</Descrp>
+    <Advice>Check for slowness in remote webservice if thread continues to appear in Socket Read</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>SOA BAM</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.bpm.analytics.bam.action</Keyword>
+    <Descrp>Oracle SOA BAM Execution</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Bottleneck among threads</Name>
+    <Health>WARNING</Health>
+    <Keyword>ContentionForUnownedLock</Keyword>
+    <Descrp>High Contention for unowned Locks</Descrp>
+    <Advice>Check and avoid (even if short lived) contention for locks, modify code or conditions (Debugs possibly turned on), increase the number of resources under contention via increased pool size/caching or avoid the call pattern/optimize the call; In case of OSB Services or Web Apps, ensure they use a dedicated Custom Work Manager with Min Thread Contraints (using dispatch policy) to avoid any thread starvation issues </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Socket Read</Name>
+    <Health>WATCH</Health>
+    <Keyword>SocketInputStream.socketRead</Keyword>
+    <Descrp>Socket read</Descrp>
+    <Advice>Check for slowness/network outage/firewall socket drops if these sockets are to DB; or External/Remote Services (not usual housekeeping services)</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Get File Attributes</Name>
+    <Health>WATCH</Health>
+    <Keyword>UnixFileSystem.getBooleanAttributes</Keyword>
+    <Descrp>Thread getting file attributes from file system</Descrp>
+    <Advice>Check for disk slowness or problem with file system (NFS) if pattern continues</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Check Canonical File Path</Name>
+    <Health>WATCH</Health>
+    <Keyword>UnixFileSystem.canonicalize</Keyword>
+    <Descrp>Thread checking canonical file path</Descrp>
+    <Advice>Check for disk slowness or problem with file system (NFS) if pattern continues; Run "df -k" to verify network mounts are not hanging. </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>NIO Select</Name>
+    <Health>IGNORE</Health>
+    <Keyword>sun.nio.ch.SelectorImpl.select</Keyword>
+    <Descrp>Using Java Native IO (NIO) via Select or Poll option</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Remote Tx Coordinator</Name>
+    <Health>WATCH</Health>
+    <Keyword>weblogic.transaction.internal.CoordinatorImpl.*Stub.commit</Keyword>
+    <Descrp>Remote coordinator to commit transaction</Descrp>
+    <Advice>Even if the coordinator is remote, it should execute fast (for cross-domains - use global trust or credential mappers); If multiple threads show up in Transaction commit waiting state or remote response, apply Bug fix 9974377 and 10236820 (WLS 10.3) that uses separate WM for JTA commits on all servers</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Tx commit</Name>
+    <Health>WATCH</Health>
+    <Keyword>ServerTransactionImpl.commit, SubCoordinatorImpl.startCommit</Keyword>
+    <Descrp>Transaction commiting</Descrp>
+    <Advice>Transactiong getting commited; If multiple threads show up in Transaction commit waiting state or remote response, apply Bug fix 9974377 and 10236820 (WLS 10.3) that uses separate WM for JTA commits; If thread stays or hangs in same state and involves cross-domain transactions, ensure there is global trust set between the domains or other transaction interop. </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Tx 2PC Prepare</Name>
+    <Health>WATCH</Health>
+    <Keyword>weblogic.transaction.internal.ServerTransactionImpl.globalPrepare</Keyword>
+    <Descrp>Prepare phase of 2PC commit</Descrp>
+    <Advice>Can execute slow or fast based on participants in Transaction</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Tx commit to Disk</Name>
+    <Health>WATCH</Health>
+    <Keyword>GXATransactionImpl.commitStoreIO.*localCommit</Keyword>
+    <Descrp>Server committing Transaction to transaction logs</Descrp>
+    <Advice>Should commit in short time; If multiple threads show up in Transaction commit waiting state or remote response, apply Bug fix 9974377 and 10236820 (WLS 10.3) that uses separate WM for JTA commits as well as check on why the store writes are taking longer</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Tx prepare commit to disk</Name>
+    <Health>WATCH</Health>
+    <Keyword>GXATransactionImpl.commitStoreIO.*prepare</Keyword>
+    <Descrp>Server writing prepare phase of 2PC commit to transaction logs</Descrp>
+    <Advice>Should write the prepare phase in short time; If multiple threads show up in Transaction commit waiting state or remote response, apply Bug fix 9974377 and 10236820 (WLS 10.3) that uses separate WM for JTA commits</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Tx logging</Name>
+    <Health>WATCH</Health>
+    <Keyword>ServerTransactionImpl.log</Keyword>
+    <Descrp>Server waiting for logging of prepare or commit of transaction</Descrp>
+    <Advice>Should finish in short time</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Thread starvation</Name>
+    <Health>WARNING</Health>
+    <Keyword>ThreadStarvation</Keyword>
+    <Descrp>WLS Default Thread pool is possibly running out of free threads to serve requests</Descrp>
+    <Advice>Ignore if the server is still starting up. There are too few idle threads in WLS Default Thread pool to handle new requests or callbacks (like OSB Service callout response or JTA commit callbacks or JMS acks) if system is heavily loaded; If multiple threads show up in Service callout remote response, configure custom work manager with min thread constraints for the Busines service response handling. For JTA commits blocked for remote callbacks, apply Bug fix 9974377 and 10236820 (WLS 10.3) that uses separate WM for JTA commits (needs to be applied on all servers involved in the distributed transaction)</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Reserve Connection from Pool</Name>
+    <Health>WATCH</Health>
+    <Keyword>ConnectionPool.reserve</Keyword>
+    <Descrp>Reserving JDBC or other pooled resource connections from Pool in WLS</Descrp>
+    <Advice>Check the outcome of Connection reserve in a subsequent thread dump or stack trace of the reserve() call</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Large # of WLS Muxer Threads</Name>
+    <Health>WATCH</Health>
+    <Keyword>WebLogicMuxerThreads</Keyword>
+    <Descrp>Large number of WLS Muxer Threads</Descrp>
+    <Advice>Reduce number of WLS Muxer Threads to under 4, use -Dweblogic.SocketReaders=NoOfThreads flag in command line</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Tibco EMS Message Listener Thread</Name>
+    <Health>NORMAL</Health>
+    <Keyword>TibjmsxLinkTcp.LinkReader.run</Keyword>
+    <Descrp>Tibco EMS Message Listener Thread</Descrp>
+    <Advice>Normal behavior</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>IBM MQ Client</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.ibm.mq.MQ</Keyword>
+    <Descrp>Using IBM MQ Client library</Descrp>
+    <Advice>Normal behavior</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Too Many Threads</Name>
+    <Health>WARNING</Health>
+    <Keyword>TooManyThreads</Keyword>
+    <Descrp>Using lots of threads - can be a resource drain or lead to too many context switches</Descrp>
+    <Advice>Check why there are so many threads; Check if this server alone getting all the requests (non-uniform load distribution or loopbacks or peak bursts in traffic); Try to throttle the requests; Try to reduce max number of threads; Use custom WM with Min thread contraints to separate traffic and ensure requests for one application does not overwhelm all other server requests</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>JDBC Connection Pool shutting down</Name>
+    <Health>WARNING</Health>
+    <Keyword>ConnectionPool.shutdown</Keyword>
+    <Descrp>JDBC Connection Pool shutting down</Descrp>
+    <Advice>JDBC Connection Pool is being shutdown, ensure its due to user action and not due to failure conditions</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Web Application Request</Name>
+    <Health>NORMAL</Health>
+    <Keyword>HttpServlet.service, jsp.servlet, weblogic.servlet</Keyword>
+    <Descrp>Servlet Request</Descrp>
+    <Advice>Normal Servlet call</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Log4J immediateFlush</Name>
+    <Health>WARNING</Health>
+    <Keyword>log4j.Category.forcedLog</Keyword>
+    <Descrp>Log4J using immediateFlush will reduce performance</Descrp>
+    <Advice>immediateFlush with log4j will result in slowdown and increased contention among threads; this option is ON by default and might not be explicitly specified; Set immediateFlush="false" and instead use bufferedIO in the appenders config. Set </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Console checking Application Deployment status</Name>
+    <Health>NORMAL</Health>
+    <Keyword>DeploymentUtils.getApplicationStatusString</Keyword>
+    <Descrp>Console getting Deployment status of application</Descrp>
+    <Advice>Check state of Managed servers if pattern continues (or possibly large number of managed servers and apps)</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Deployment started</Name>
+    <Health>WATCH</Health>
+    <Keyword>DeploymentServerService.start</Keyword>
+    <Descrp>Deployment Service has been started</Descrp>
+    <Advice>Server bringing up deployment service. Deployments should complete in a finite time. Precompile application bits with the correct server version ahead of deployment if possible to speed up deployment time</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>JSP Compilation</Name>
+    <Health>NORMAL</Health>
+    <Keyword>JavelinxJspPrecompiler.compile</Keyword>
+    <Descrp>JSP compilation</Descrp>
+    <Advice>Precompile application bits and JPSs against the correct server version ahead of deployment if possible</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>JSP Compilation Job</Name>
+    <Health>WATCH</Health>
+    <Keyword>weblogic.jsp.internal.client.JobWaiter.blockUntilFinished</Keyword>
+    <Descrp>JSP compilation job blocking request</Descrp>
+    <Advice>Thread waiting for jsp compilation to finish. Precompile application bits and JPSs against the correct server version ahead of deployment if possible</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>WLS App undeployment</Name>
+    <Health>WATCH</Health>
+    <Keyword>BasicDeployment.unprepare</Keyword>
+    <Descrp>WLS undeploying application</Descrp>
+    <Advice>Application is getting undeployed on server</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Wait for JMS Messages</Name>
+    <Health>NORMAL</Health>
+    <Keyword>JMSSession.receiveMessage</Keyword>
+    <Descrp>Wait for JMS messages</Descrp>
+    <Advice>Normal Behavior for JMS Consumer</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Initial Context Creation</Name>
+    <Health>WARNING</Health>
+    <Keyword>WLInitialContextFactory.getInitialContext</Keyword>
+    <Descrp>WLS Initial Context Creation</Descrp>
+    <Advice>JNDI Context should be cached, repeat calls can degrade performance if context is not cached</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Socket Listener</Name>
+    <Health>IGNORE</Health>
+    <Keyword>SocketImpl.socketAccept, ServerSocketChannelImpl.accept</Keyword>
+    <Descrp>Socket Listener waiting on accept</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Socket Listener Missing</Name>
+    <Health>WARNING</Health>
+    <Keyword>Socket Listener Missing</Keyword>
+    <Descrp>Socket Listener not found</Descrp>
+    <Advice>Ignore if jvm is not a server or server instance still starting up</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Web Application Bottleneck</Name>
+    <Health>WARNING</Health>
+    <Keyword>WebLayerBlocked</Keyword>
+    <Descrp>Web Application is waiting for an Event</Descrp>
+    <Advice>Web Application should not go into WAIT state as it means the end user would have to wait for indeterminate time for a synchronous response; Change the code or logic to return the results or response right away instead of blocking or waiting for an event; Use custom Work Manager and dispatch policy to avoid thread starvation or to use dedicated threads for execution; Ignorable for OSB Webservice callout as the pattern requires the invoker thread to wait while actual response is handled by another thread ; Ignore if thread is waiting for response from Coherence ..
+    </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>EJB Blocked</Name>
+    <Health>WARNING</Health>
+    <Keyword>EJB Blocked</Keyword>
+    <Descrp>EJB is waiting for a lock</Descrp>
+    <Advice>Check reasons for the EJB getting blocked</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS SFSB retrieve  from Cache</Name>
+    <Health>WATCH</Health>
+    <Keyword>weblogic.ejb.container.cache.NRUCache.get.*StatefulSessionManager.getBean</Keyword>
+    <Descrp>Attepmpting to get SFSB EJB from Cache</Descrp>
+    <Advice>Try to use SLSB if possible; If multiple threads are blocked trying to retrieve from cache, check for holder of the lock</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS SFSB Passivation</Name>
+    <Health>WATCH</Health>
+    <Keyword>weblogic.ejb.container.manager.StatefulSessionManager.swapOut</Keyword>
+    <Descrp>Removing SFSB EJB from Cache and passivating to disk</Descrp>
+    <Advice>Try to use SLSB if possible; If possible, increase SFSB cache size to avoid premature passivation (at cost of higher memory)</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB JMS Reporting Action</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.bea.wli.reporting.jmsprovider</Keyword>
+    <Descrp>OSB Reporting JMS Provider execution</Descrp>
+    <Advice>Normal reporting action</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Large # of Parallel GC Threads</Name>
+    <Health>WARNING</Health>
+    <Keyword>ParallelGCThreads</Keyword>
+    <Descrp>Large number of Parallel GC Threads used by JVM</Descrp>
+    <Advice>Reduce number of Parallel GC Threads, based on number of CPU/Cores and JVMs running on the host machine; Use -XXgcthreads:N for JRockit and -XX:ParallelGCThreads=N for HotSpot to limit number of parallel GC threads. Recommended # of GC Threads = (# of CPUs x # of Hardware Threads per core)/(# of JVMs on same machine). Example: Exalogic node 12 core, hyperthreaded means 24 hardware threads, and 2 JVMs imply 12 ParallelGC threads for each JVM</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Large # of Parallel GC Threads</Name>
+    <Health>WARNING</Health>
+    <Keyword>Parallel GC Threads</Keyword>
+    <Descrp>Large number of Parallel GC Threads used by JVM</Descrp>
+    <Advice>Reduce number of Parallel GC Threads, based on number of CPU/Cores and JVMs running on the host machine; Use -XXgcthreads:N for JRockit and -XX:ParallelGCThreads=N for HotSpot to limit number of parallel GC threads. Recommended # of GC Threads = (# of CPUs x # of Hardware Threads per core)/(# of JVMs on same machine). Example: Exalogic node 12 core, hyperthreaded means 24 hardware threads, and 2 JVMs imply 12 ParallelGC threads for each JVM</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Waiting for Event while blocking others</Name>
+    <Health>WARNING</Health>
+    <Keyword>WaitWhileBlockingPattern</Keyword>
+    <Descrp>Multiple Threads blocking for a Lock while Lock Owner is waiting for an Event</Descrp>
+    <Advice>Ensure the owner thread is not waiting forever for an Event; if the desired Event never occurs, the lock will never get released and the blockers will be stuck in the same state forever.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Coherence Dameon wait</Name>
+    <Health>IGNORE</Health>
+    <Keyword>coherence.component.util.Daemon.onWait</Keyword>
+    <Descrp>Coherence Daemon Thread Waiting</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Member joined Coherence Cluster</Name>
+    <Health>WATCH</Health>
+    <Keyword>com.tangosol.coherence.component.util.SafeService.memberJoined</Keyword>
+    <Descrp>A new member joined Coherence Cluster service</Descrp>
+    <Advice>Avoid using cluster or cache services when a member is joining as it can lead to deadlocks</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Member left Coherence Cluster</Name>
+    <Health>WATCH</Health>
+    <Keyword>com.tangosol.coherence.component.util.SafeService.memberLeft</Keyword>
+    <Descrp>A new member joined Coherence Cluster service</Descrp>
+    <Advice>Avoid using cluster or cache services when a member just left</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Member leaving Coherence Cluster</Name>
+    <Health>WATCH</Health>
+    <Keyword>com.tangosol.coherence.component.util.SafeService.memberLeaving</Keyword>
+    <Descrp>A new member joined Coherence Cluster service</Descrp>
+    <Advice>Careful using cluster or cache services when member is leaving, dont use locks</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Coherence Near Cache Get</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.tangosol.net.cache.CachingMap.get</Keyword>
+    <Descrp>Get from Coherence Near Cache</Descrp>
+    <Advice>If it involves further calls to Grid.poll, then it is a near cache miss</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Coherence Remote Polling</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.poll</Keyword>
+    <Descrp>Poll for data/cache entry from remote Coherence members</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Coherence waiting for EventQueue to drain</Name>
+    <Health>WARNING</Health>
+    <Keyword>EventDispatcher.drainQueue</Keyword>
+    <Descrp>Waiting for events to drain from queue</Descrp>
+    <Advice>Can indicate deadlock or slow processing if its stays in this state</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Coherence Deprecated API</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.tangosol.net.CacheFactory.getReplicatedCache</Keyword>
+    <Descrp>getReplicatedCache is deprecated - use getCache</Descrp>
+    <Advice>Change code to use CacheFactory.getCache(name) or getService which is more efficient</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Coherence slowdown</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.tangosol.net.CacheFactory.ensureCluster</Keyword>
+    <Descrp>Presence of CacheFactory.ensureCluster might indicate coherence slowness</Descrp>
+    <Advice>ensureCluster call normally wont be seen in thread dumps as its a fast call. Presence of it might indicate slowdown. Verify there are no cluster wide deadlocks or members joining/leaving cluster</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>B2B Thread Executor</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.b2b.engine.ThreadWorkExecutor</Keyword>
+    <Descrp>B2B Thread Executor</Descrp>
+    <Advice>B2B Custom Thread Pool Executor thread</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>B2B Callout</Name>
+    <Health>NORMAL</Health>
+    <Keyword>callout.B2BCalloutHandler</Keyword>
+    <Descrp>B2B Callout</Descrp>
+    <Advice>Ensure its not adding overhead to normal processing</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>AQ Dequeue Agent</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.aq.*AbstractDequeueAgent</Keyword>
+    <Descrp>AQ Message dequeuing</Descrp>
+    <Advice>Normal AQ message dequeue thread</Advice>
+  </Advisory> 
+  <Advisory>
+    <Name>AQ JMS Consumer</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.jms.AQjmsConsumer</Keyword>
+    <Descrp>AQ JMS consumer client dequeuing</Descrp>
+    <Advice>Normal AQ JMS consumer thread</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle SOA File Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.file.inbound</Keyword>
+    <Descrp>Oracle SOA File Adapter running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>MDS</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.mds.internal.persistence.db.AutoPurgeThread</Keyword>
+    <Descrp>MDS Auto Purging Thread</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle Mediator</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.mediator.dispatch.db.DBContainerIdManager</Keyword>
+    <Descrp>Oracle Mediator container id refresh wait</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Oracle Mediator Locker</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.mediator.common.listener.DBLocker</Keyword>
+    <Descrp>Oracle Mediator locker thread locking the message for worker thread processing</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>    
+  <Advisory>
+    <Name>Oracle SOA Cluster Node Heartbeat Locker</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.collaxa.cube.cluster.ClusterService</Keyword>
+    <Descrp>Oracle SOA cluster node heartbeat service maintaining all cluster nodes heartbeat</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>   
+  <Advisory>
+    <Name>Threaddump generation</Name>
+    <Health>IGNORE</Health>
+    <Keyword>racle.dfw.sampling.DumpSampling</Keyword>
+    <Descrp>Threaddump generation</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>   
+  <Advisory>
+    <Name>Oracle SOA JMS Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.jms.inbound</Keyword>
+    <Descrp>Oracle SOA JMS Adapter running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle SOA DB Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.db.inbound,oracle.tip.adapter.db.InboundWork</Keyword>
+    <Descrp>Oracle SOA DB Adapter running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory> 
+  <Advisory>
+    <Name>Oracle Mediator waiting</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.mediator.common.listener.DBLocker.enqueueLockedMessages</Keyword>
+    <Descrp>Oracle Mediator waiting for messages from DB</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle Mediator Execution</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.mediator.service,oracle.tip.mediator.serviceEngine.MediatorServiceEngine</Keyword>
+    <Descrp>Oracle Mediator Service running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>	
+  <Advisory>
+    <Name>Oracle Mediator Resequencer</Name>
+    <Health>WATCH</Health>
+    <Keyword>oracle.tip.mediator.resequencer.ResequencerDBWorker</Keyword>
+    <Descrp>Oracle Mediator resequencer worker thread</Descrp>
+    <Advice>Mediator resequencer under stress, please check the number of worker threads configured in EM and the target system log, this might be due to target system is slow</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle Mediator Resequencer</Name>
+    <Health>WATCH</Health>
+    <Keyword>oracle.tip.resequencer.threadpool.WorkerThread</Keyword>
+    <Descrp>Oracle Mediator resequencer worker thread</Descrp>
+    <Advice>Mediator resequencer under stress, please check the number of worker threads configured in EM and the target system log, this might be due to target system is slow</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Oracle Mediator Resequencer</Name>
+    <Health>WATCH</Health>
+    <Keyword>oracle.tip.mediator.resequencer.ResequencerDBLocker</Keyword>
+    <Descrp>Oracle Mediator resequencer locker thread</Descrp>
+    <Advice>Mediator resequencer locker thread, there will be only 1 resequencer db locker thread to lock the group, if it is under stress or slow, please check the database performance</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Oracle Mediator Resequencer</Name>
+    <Health>WATCH</Health>
+    <Keyword>oracle.tip.resequencer.threadpool.ResequencerDBLocker, oracle.tip.resequencer.threadpool.AbstractLocker</Keyword>
+    <Descrp>Oracle Mediator resequencer locker thread</Descrp>
+    <Advice>Mediator resequencer locker thread, there will be only 1 resequencer db locker thread to lock the group, if it is under stress or slow, please check the database performance</Advice>
+  </Advisory>    
+  <Advisory>
+    <Name>Oracle Mediator Resequencer</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.resequencer</Keyword>
+    <Descrp>Oracle Mediator resequencer thread</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>     
+  <Advisory>
+    <Name>WLS Persistent Store Thread</Name>
+    <Health>NORMAL</Health>
+    <Keyword>weblogic.store.internal.PersistentStoreImpl.getOutstandingWork</Keyword>
+    <Descrp>Thread handling WLS Persistent Store</Descrp>
+    <Advice>Normal thread handling wls file based persistence</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>WLS StoreIO Writes</Name>
+    <Health>NORMAL</Health>
+    <Keyword>weblogic.store.io.file.FileStoreIO.flush</Keyword>
+    <Descrp>Thread handling WLS Persistent FileStoreIO</Descrp>
+    <Advice>thread writing to wls file based persistence</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Persistent Store recovery</Name>
+    <Health>WATCH</Health>
+    <Keyword>weblogic.messaging.kernel.internal.PersistenceImpl.recover</Keyword>
+    <Descrp>WLS starting recovery of persistent stores (JMS filestores or default stores) at startup</Descrp>
+    <Advice>The recovery will affect server startup based on number of messasges in the jms stores; compact JMS file stores if possible before restart; Refer to JMS Documentation on weblogic.store.Admin utility</Advice>
+  </Advisory>
+  
+  <Advisory>
+    <Name>WLS NM Client</Name>
+    <Health>NORMAL</Health>
+    <Keyword>weblogic.nodemanager.client</Keyword>
+    <Descrp>WLS server is either communicating with NM or running as NM</Descrp>
+    <Advice>Normal Server-NM communication</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Java Socket Muxer</Name>
+    <Health>FATAL</Health>
+    <Keyword>JavaSocketMuxer.processSockets</Keyword>
+    <Descrp>WLS is using JavaSocketMuxer instead of Native Socket Muxer, should be avoided for server side</Descrp>
+    <Advice>If thread dump is from a running WLS Server, Server should use the Native Socket Muxer Performance Pack instead of using the JavaSocketMuxer; Ensure the $LD_LIBRARY_PATH or $SHLIB_PATH or %PATH% includes the path to the native libraries; Ignorable if the thread dump is from a standalone client and not a WLS Server</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Wait for RMI Response</Name>
+    <Health>WATCH</Health>
+    <Keyword>ResponseImpl.waitForData</Keyword>
+    <Descrp>Waiting for Remote WLS Server response</Descrp>
+    <Advice>Normal behavior, blocked for remote rmi response</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Trying to acquire Reentrant Lock</Name>
+    <Health>WATCH</Health>
+    <Keyword>ReentrantLock.lock</Keyword>
+    <Descrp>Thread attempting to acquire java concurrent Reentrant Lock</Descrp>
+    <Advice>Treat it as blocked thread; Check if the thread continues in Parked state or acquired the lock; Use -XX:+PrintConcurrentLocks to print the details of who might be holding but not releasing the Reentrant Lock; Enable jvm flag -XX:+UseMembar if threads are blocked for Reentrant locks with OSB</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Trying to acquire Write Lock</Name>
+    <Health>WATCH</Health>
+    <Keyword>WriteLock.lock</Keyword>
+    <Descrp>Thread attempting to acquire java concurrent Write Lock</Descrp>
+    <Advice>
+      Treat it as blocked thread; Check if the thread continues in Parked state or acquired the lock; 
+    Use -XX:+PrintConcurrentLocks to print the details of locks; Enable jvm flag -XX:+UseMembar if threads are blocked for Reentrant locks with OSB   
+    </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Trying to acquire Read Lock</Name>
+    <Health>WATCH</Health>
+    <Keyword>ReadLock.lock</Keyword>
+    <Descrp>Thread attempting to acquire java concurrent Read Lock</Descrp>
+    <Advice>Treat it as blocked thread; Check if the thread continues in Parked state or acquired the lock; Use -XX:+PrintConcurrentLocks to print the details of who might be holding but not releasing the Read Lock; Enable jvm flag -XX:+UseMembar if threads are blocked for Reentrant locks with OSB</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Trying to acquire Semaphore</Name>
+    <Health>WATCH</Health>
+    <Keyword>Semaphore.acquire</Keyword>
+    <Descrp>Thread attempting to acquire java semaphore</Descrp>
+    <Advice>Treat it as blocked thread; Check if the thread continues in Parked state or acquired the lock; Use -XX:+PrintConcurrentLocks</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB EJB Response Wait</Name>
+    <Health>WATCH</Health>
+    <Keyword>OSB_EJB_RESPONSE_WAIT</Keyword>
+    <Descrp>OSB Thread waiting for EJB Response</Descrp>
+    <Advice>Treat it as blocked thread; Ensure the backend ejb being invoked is not bottlenecked</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Hot Spots</Name>
+    <Health>WATCH</Health>
+    <Keyword>HotCallPattern</Keyword>
+    <Descrp>Multiple Threads executing same code path</Descrp>
+    <Advice>Indicates heavily executed code paths. Need not be an indicator of problem but ensure there are no blocking locks or bottlenecks, sufficient resources are available for execution under load; Remote service being invoked is responsive and scaling well to handle increased load; Use custom Work Manager and dispatch policy to avoid thread starvation or to use dedicated threads for execution</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Messaging Bridge</Name>
+    <Health>NORMAL</Health>
+    <Keyword>MessagingBridge.processMessages</Keyword>
+    <Descrp>WLS Message Bridge processing jms messages</Descrp>
+    <Advice>Normal behavior</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Circular Deadlock Condition</Name>
+    <Health>FATAL</Health>
+    <Keyword>DEADLOCK</Keyword>
+    <Descrp>Circular Lock Dependency Detected leading to Deadlock</Descrp>
+    <Advice>Deadlock detected with circular dependency in locks, blocked threads will not recover without Server Restart; Fix the order of locking and or try to avoid locks or change order of locking at code level, Report with SR for Server/Product Code</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Wily Instrumentation</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.wily</Keyword>
+    <Descrp>Wily Instrumentation enabled</Descrp>
+    <Advice>Wily code instrumentation has been enabled; Ensure it does not consume too much memory or uses too fine grained instrumentation that it slows down performance</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Message Filtering</Name>
+    <Health>WARNING</Health>
+    <Keyword>weblogic.messaging.common.SQLFilter.match</Keyword>
+    <Descrp>WLS JMS Message Filtering via Selectors</Descrp>
+    <Advice>Selectors can slow down performance if the filter uses message body or complex expressions for selecting messages; leading to slow down in message consumption and bottleneck among consumers as the Queue has to be locked while running the selectors; try to split the queue into multiple separate queues if possible to improve throughput and reduce contention among consumers.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JMS Delayed delivery</Name>
+    <Health>WATCH</Health>
+    <Keyword>QueueImpl.DeliveryListener.timerExpired</Keyword>
+    <Descrp>WLS JMS Message with delayed msg delivery </Descrp>
+    <Advice>Avoid delayed message delivery as too many such deliveries can create synchronization around the Queue; Use LLR option if changes to DB are not visible fast enough while JMS commits things faster</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB WebService Callout</Name>
+    <Health>NORMAL</Health>
+    <Keyword>WsCalloutRuntimeStep.processMessage</Keyword>
+    <Descrp>OSB WebService Callout Execution</Descrp>
+    <Advice>OSB WebService outbound call</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Business Service Response</Name>
+    <Health>WATCH</Health>
+    <Keyword>HttpOutboundMessageContextWls.RetrieveHttpResponseWork</Keyword>
+    <Descrp>OSB WebService resonse read</Descrp>
+    <Advice>OSB should read the response very fast from a remote business webservice endpoint and the thread itself will rarely appear in thread dumps; if the thread continues to appear in same state, then either the backend service or network is slow</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>HTTP Response Read</Name>
+    <Health>NORMAL</Health>
+    <Keyword>HTTPResponse.handleResponse</Keyword>
+    <Descrp>Reading Http Response</Descrp>
+    <Advice>Check for slowness in remote service if pattern continues</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS JNDI Lookup</Name>
+    <Health>WARNING</Health>
+    <Keyword>WLContextImpl.lookup</Keyword>
+    <Descrp>WLS JNDI Lookup</Descrp>
+    <Advice>JNDI Objects should be cached (along with Contexts) to avoid repeated calls especially when the resource is remote and not-local; This can result in degraded performance for repeat calls.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Wait for SLSB Beans</Name>
+    <Health>FATAL</Health>
+    <Keyword>StatelessSessionPool.waitForBean</Keyword>
+    <Descrp>Waiting for Stateless Session Bean (SLSB) instance from the SLSB Free pool</Descrp>
+    <Advice>Beans all in use, free pool size size insufficient</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Muxer is processing server requests</Name>
+    <Health>FATAL</Health>
+    <Keyword>WLSSubsystemRequestOverflow</Keyword>
+    <Descrp>WLS Muxer is handling subsystem requests</Descrp>
+    <Advice>WLS Server health is unhealthy as some subsystems are overwhelmed with requests which is leading to the Muxer threads directly handling requests; instead of dispatching to relevant subsystems; There is likely a bug here.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Services startup</Name>
+    <Health>NORMAL</Health>
+    <Keyword>ServerServicesManager.startService</Keyword>
+    <Descrp>WLS Server starting up its services</Descrp>
+    <Advice>WLS Server is initializing and starting up its services</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS subsystems starting</Name>
+    <Health>NORMAL</Health>
+    <Keyword>weblogic.t3.srvr.SubsystemRequest.rendezvouz</Keyword>
+    <Descrp>WLS Server waiting for subsystems to start</Descrp>
+    <Advice>WLS Server is waiting for subsystems to start</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Socket Muxer starting</Name>
+    <Health>NORMAL</Health>
+    <Keyword>SocketMuxerServerService.start</Keyword>
+    <Descrp>WLS Server starting Socket Muxer subsystem</Descrp>
+    <Advice>Normally socket muxer system should finish fast, if it stays in same state, then its fatal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Embedded LDAP replication</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.octetstring.vde.replication.Replication.run</Keyword>
+    <Descrp>WLS Server starting embedded ldap service</Descrp>
+    <Advice>WLS Server embedded ldap service starting</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Socket registered with WLS Muxer </Name>
+    <Health>WATCH</Health>
+    <Keyword>SocketMuxer.*SelfTuningWorkManagerImpl.WorkAdapterImpl.run</Keyword>
+    <Descrp>Socket is getting registered with WLS Muxer from a non-Muxer Thread</Descrp>
+    <Advice>OSB or other applications might register sockets with the Muxer layer to handle responses from backend without blocking (Check on FutureAsyncResponse Servlet pattern in WLS). Normally this happens real fast and rarely get captured in thread dumps. But if multiple threads demonstrate same pattern, then there is a problem with the WLS Muxer threads. </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Tibco EMS Message Consumer</Name>
+    <Health>NORMAL</Health>
+    <Keyword>TibjmsMessageConsumer.receive</Keyword>
+    <Descrp>Tibco EMS Message Consumer</Descrp>
+    <Advice>Normal behavior</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle DMS Aggregator</Name>
+    <Health>WATCH</Health>
+    <Keyword>oracle.dms.aggregator.Storage.getTables</Keyword>
+    <Descrp>Oracle DMS Aggregator running</Descrp>
+    <Advice>Ensure its not an overhead/drain on performance if multiple threads display this advisory, if needed, turn off DMS</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>JMX MBean Server Query</Name>
+    <Health>WATCH</Health>
+    <Keyword>DefaultMBeanServerInterceptor.queryMBeans, DefaultMBeanServerInterceptor.getMBean</Keyword>
+    <Descrp>Query of MBeans from the MBeanServer instance</Descrp>
+    <Advice>Ensure its not an overhead/drain on performance if multiple threads attempting to query/get/update the MBean Server</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>JMX Invocation</Name>
+    <Health>WATCH</Health>
+    <Keyword>javax.management.remote.rmi</Keyword>
+    <Descrp>JMX invocations</Descrp>
+    <Advice>Ensure its not an overhead/drain on performance if multiple threads attempting to query/invoke/get/update MBeans</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Replicated Session Secondary</Name>
+    <Health>NORMAL</Health>
+    <Keyword>ReplicatedSessionData.update</Keyword>             
+    <Descrp>WLS webapp is using replicated session (in clustered instance)</Descrp>
+    <Advice>Normal, HTTP Session is replicated on secondary</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS Replicated Session Primary</Name>
+    <Health>NORMAL</Health>
+    <Keyword>ReplicatedSessionData.syncSession</Keyword>
+    <Descrp>WLS webapp is using replicated session (in clustered instance)</Descrp>
+    <Advice>Normal, HTTP Session would get replicated to a chosen secondary</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>BPEL Engine JDBC Connections</Name>
+    <Health>WATCH</Health>
+    <Keyword>com.collaxa.cube.engine.data.ConnectionFactory.getConnection</Keyword>
+    <Descrp>BPEL Engine requesting JDBC Connections</Descrp>
+    <Advice>BPEL Engine is requesting for new JDBC connections; Ensure the thread does not blocked, or get into wait or sleep modes due to unavailable connections</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle BAM Sensor</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.collaxa.cube.engine.sensor.sa.publisher.bamMonitor</Keyword>
+    <Descrp>Using Oracle BAM sensor to publish data</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Business Service Error</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.bea.wli.sb.transports.LoadBalanceFailoverListener.onError</Keyword>
+    <Descrp>OSB Business service either unreachable or errored out</Descrp>
+    <Advice>Verify the Business Service endpoint used by OSB is healthy and reachable; OSB will retry this endpoint again after a pre-configured sleep interval</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Route Blocking Http outbound</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.bea.wli.sb.transports.http.HttpOutboundMessageContext.getResponse</Keyword>
+    <Descrp>OSB Route action is invoking HTTP Business service in blocking mode</Descrp>
+    <Advice>OSB Route action will use blocking mode for HTTP service invocations when used in Exactly-Once QoS mode, tying up the request thread till response returns, if request path has a transaction (like JMS Proxy) when calling Route; If its Best-Effort, then it will use async threading model to decouple request from response handler thread to avoid blocking; Decide on the transaction requiments and use either Exactly-Once (rollback complete request Tx on failure with HTTP business service) or Best-Effort (outcome of business service invocation wont affect request transaction) for the Route action</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB EJB Inbound</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.bea.wli.sb.transports.jejb.gen.inb.BaseInboundEJBHelper.callPipeline</Keyword>
+    <Descrp>OSB Inbound EJB Request </Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle cloud control activity</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.oracle.sysman.services.cloudmgmt, Cloud.*DaoImpl</Keyword>
+    <Descrp>Activity involving Oracle cloud control</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSM ClusterMsgHandler</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.communications.ordermanagement.cluster.message.ClusterMessageHandlerBean</Keyword>
+    <Descrp>OSM ClusterMessageHandler MDB Execution</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSM cluster-wide order release</Name>
+    <Health>WATCH</Health>
+    <Keyword>AgentRequestBalancerImpl.releaseOrderOwnership</Keyword>
+    <Descrp>OSM waiting for cluster-wide lock to be released for a given Order from a remote server</Descrp>
+    <Advice>Should get lock released fast by remote server - problem if it takes long (> few seconds) to get released </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSM cluster-wide order lock</Name>
+    <Health>WATCH</Health>
+    <Keyword>ordermanagement.util.t.tryLock</Keyword>
+    <Descrp>OSM trying to acquire cluster-wide lock for a given Order</Descrp>
+    <Advice>Should acquire lock fast once holder (remote server) of lock releases - problem if blocked for long (> few seconds)</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Sun HSS Spawing Shell</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.sun.hss.domain.util.misc.*CommandSpawner</Keyword>
+    <Descrp>Sun HSS spawning off new shell for job execution</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Sun HSS wait for death of spawned process</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.sun.hss.domain.util.spawn.UNIXProcess.waitForProcessExit</Keyword>
+    <Descrp>Thread waiting for death of spawned off process</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Sun xVM Appliance Details</Name>
+    <Health>NORMAL</Health>
+    <Keyword>XVMServerService.*XVMApplianceDetails</Keyword>
+    <Descrp>Sun xVMServer getting xVM Appliance Details</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>DWR Ajax</Name>
+    <Health>NORMAL</Health>
+    <Keyword>org.directwebremoting</Keyword>
+    <Descrp>Java Ajax interaction with javascript</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>JRockit Memory Allocation</Name>
+    <Health>WATCH</Health>
+    <Keyword>jrockit.vm.Allocator.getNewTla</Keyword>
+    <Descrp>Thread needs more memory</Descrp>
+    <Advice>If multiple threads are requesting for memory, implies the server either needs more heap or jvm memory/gc settings need some tweaking </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Possible CPU Overload</Name>
+    <Health>WARNING</Health>
+    <Keyword>java.lang.System.currentTimeMillis</Keyword>
+    <Descrp>CPU might be overloaded</Descrp>
+    <Advice>Pattern should occur rarely in stacktrace; Might indicate CPU overload/saturation</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>JRockit JFR Repository creation</Name>
+    <Health>WARNING</Health>
+    <Keyword>oracle.jrockit.jfr.Repository.*BootService.start</Keyword>
+    <Descrp>JRockit might be unable to create JFR repository at startup</Descrp>
+    <Advice>WLS Server attempts to create JFR repository for use in WLDF during server startup under $TEMP location. If the $TEMP location is not writeable or problems exist with the file system, then the server startup can hang. Check permissions for $TEMP or override the default location with -Djava.io.tmpdir=... parameter in server startup script. </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>NIOMuxer Bug 13962335 </Name>
+    <Health>WARNING</Health>
+    <!--
+		<Keyword>sun.nio.ch.SocketDispatcher.read.*sun.nio.ch.SocketChannelImpl.read.*NIOSocketMuxer.*MuxableSocketT3.connect</Keyword> 
+    -->
+    <Keyword>NIOSocketMuxer.*MuxableSocketT3.connect</Keyword>
+    <Descrp>Check if WLS NIOMuxer is blocked for long, attempting to read from an unreachable endpoint, which can lead to stuck thread and severe Server Hang situations</Descrp>
+    <Advice>Apply Patch for Bug #13962335 on all weblogic servers if the server thread continues in the same read state across multiple thread dumps</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Java Serialization</Name>
+    <Health>NORMAL</Health>
+    <Keyword>java.io.ObjectInputStream.readObject, java.io.ObjectOutputStream.writeObject</Keyword>
+    <Descrp>Java serialization of objects</Descrp>
+    <Advice>Normal java serialization</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Thread Sleep</Name>
+    <Health>WATCH</Health>
+    <Keyword>Thread.sleep</Keyword>
+    <Descrp>Java Thread sleeping</Descrp>
+    <Advice>Use wait-notify, instead of repeated sleep-awake-check if possible</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Dump Threads</Name>
+    <Health>IGNORE</Health>
+    <Keyword>Runtime.getThreadStackDump</Keyword>
+    <Descrp>Dump Java Thread stacks programatically</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>MQ Series Shared Conversations</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.ibm.mq.jmqi.remote.internal.system.RemoteConnection.sendTSH.*MQSession.close</Keyword>
+    <Descrp>Threads communicating with MQ Series might go into wait state for long periods on closure of connections possibly due to shared conversations in MQ 7; Disable shared conversations if threads appear to hang or stay in wait state for long.</Descrp>
+    <Advice>Set the Sharing Conversation property of the Server Connection Channel to zero on MQ Series. Refer to Oracle Support Note Doc ID 1511617.1 or IBM Documentation on Shared Conversations </Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>ONS Event Wait</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.ons.NotificationQueue.dequeue</Keyword>		         
+    <Descrp>Thread waiting for ONS Event</Descrp>
+    <Advice>Normal ONS event thread with Gridlink </Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Cavisson SQL Dump</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.cavisson.ndutils.NDSys.dumpSQL</Keyword>		         
+    <Descrp>Cavisson capturing SQL dump; can introduce bottleneck among threads and degrade perf</Descrp>
+    <Advice>Remove or disable Cavisson SQL dump instrumentation </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>BTM Instrumentation</Name>
+    <Health>WATCH</Health>
+    <Keyword>com.amberpoint.nanoagent</Keyword>		         
+    <Descrp>Heavy code instrumentation or dynamic discovery can introduce overhead, slowness or degrade perf under heavy loads</Descrp>
+    <Advice>Disable BTM Amberpoint code instrumentation on perf degrade or slowness</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>UCP Pool Conn</Name>
+    <Health>WATCH</Health>
+    <Keyword>UCPRACModuleImpl.getConnection</Keyword>		         
+    <Descrp>Trying to get jdbc connection from UCP Gridlink pool for RAC</Descrp>
+    <Advice>If multiple threads appear with this pattern, set to Seconds to Trust Idle connection to 10 or 15 seconds, enable Pinned-to-thread and apply Bug# 17038851</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OJDL Logging</Name>
+    <Health>WATCH</Health>
+    <Keyword>oracle.core.ojdl.logging.ODLLogger</Keyword>		         
+    <Descrp>Verbose logging levels in OJDL can slow down threads</Descrp>
+    <Advice>If multiple threads appear in blocked state waiting for lock during OJDL logging, set the logging level to less verbose (ex: ERROR instead of INFO) </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>BPEL wait for Response</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.collaxa.cube.engine.delivery.DeliveryService.getResult</Keyword>		         
+    <Descrp>Waiting for service response</Descrp>
+    <Advice>If its a long invocation, try to use async model</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>BPEL Execution</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.collaxa.cube.engine.ejb.impl.bpel.BPELDeliveryBean</Keyword>		         
+    <Descrp>BPELDelivery Bean execution for sync processes</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>BPEL Outbound WS Invoke</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.collaxa.cube.ws.WSInvocationManager.invoke</Keyword>		         
+    <Descrp>BPEL Layer invoking external Web Service</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle DMS</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.dms</Keyword>		         
+    <Descrp>Oracle DMS Thread</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Apache TSCCM ConnectionPool blockage</Name>
+    <Health>WARNING</Health>
+    <Keyword>org.apache.http.impl.conn.tsccm.ConnPoolByRoute.getEntryBlocking</Keyword>		         
+    <Descrp>Apache limits number of concurrent outbound http clients to 2 for a given destination and overall to 20</Descrp>
+    <Advice>Modify Apache Tsccm code to allow higher number of connections</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Contention with AuthenticatedSubject</Name>
+    <Health>WARNING</Health>
+    <Keyword>weblogic.security.acl.internal.AuthenticatedSubject.SealableSet.1.run</Keyword>
+    <Descrp>Possible contention in OSB while using anonymous subjects if multiple threads blocked in same pattern</Descrp>
+    <Advice>Apply bug fix 17374975</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>XQueryType Contention</Name>
+    <Health>WARNING</Health>
+    <Keyword>weblogic.xml.query.types.XQueryType.of</Keyword>
+    <Descrp>Possible XQueryType contention in OSB or layers using xquery if multiple threads blocked in same pattern</Descrp>
+    <Advice>Apply bug fix 17398269</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Tux Transport Xmlbeans Locale Contention</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.bea.wli.sb.transports.tuxedo.TuxedoUtil.getTuxedoConfig</Keyword>
+    <Descrp>Possible contention in OSB Tux transport while using xmlbeans if multiple threads blocked are waiting for Locale in the same pattern</Descrp>
+    <Advice>Apply bug fix 14765706</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Possible deadlock with TransactionManager</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.bea.wli.config.transaction.TransactionManager..beginTransaction</Keyword>
+    <Descrp>Possible deadlock in OSB internals if this thread appears blocked for lock on com.bea.wli.config.transaction.TransactionManager</Descrp>
+    <Advice>Apply bug fix 17345954</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Possible deadlock with DerivedCache</Name>
+    <Health>FATAL</Health>
+    <Keyword>com.bea.wli.config.derivedcache.DerivedCache.Purger.changesCommitted</Keyword>
+    <Descrp>Possible deadlock in OSB internals if this thread appears blocked for Reentrant lock, while other osb threads appear to wait for lock on com.bea.wli.config.transaction.TransactionManager</Descrp>
+    <Advice>Apply bug fix 17345954</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB Session Activation</Name>
+    <Health>WATCH</Health>
+    <Keyword>com.bea.wli.config.transaction.TransactionManager</Keyword>
+    <Descrp>OSB Session activation in progress or committing</Descrp>
+    <Advice>OSB Configuration is being updated via an active session; Ensure the activation goes through and the thread does not enter into blocked state</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB possible contention with Xmlbeans Locale with log actions</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.bea.wli.sb.resources.service.ProxyServiceRepository.getServiceLogLevel</Keyword>
+    <Descrp>OSB thread might get blocked for xmlbeans locale during log action</Descrp>
+    <Advice>Apply OSB patch 17286169 </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>OSB possible contention with Xmlbeans Locale during GET</Name>
+    <Health>WARNING</Health>
+    <Keyword>com.bea.wli.sb.transports.http.generic.RequestHelperBase.wsiCompliant</Keyword>
+    <Descrp>OSB thread might get blocked for xmlbeans locale during check for WSI in GET action</Descrp>
+    <Advice>Apply OSB patch 16096932 </Advice>
+  </Advisory>
+  <Advisory>
+    <Name>WLS ExecuteThreads Missing</Name>
+    <Health>FATAL</Health>
+    <Keyword>WLS ExecuteThreads Missing</Keyword>
+    <Descrp>WebLogic ExecuteThreads appear missing. Threads might have been killed due to Memory or other conditions. Check "Rest of WLS" Thread Group tree node overview for missing thread ids</Descrp>
+    <Advice>WLS Server is missing ExecuteThreads (possibly killed). Check Memory, GC, CPU and logs.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle Diagnostic Framework</Name>
+    <Health>IGNORE</Health>
+    <Keyword>oracle.dfw</Keyword>
+    <Descrp>Oracle Diagnostic Framework</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Oracle SOA Cache Store for Audit</Name>
+    <Health>IGNORE</Health>
+    <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.AuditCachestore</Keyword>
+    <Descrp>Oracle SOA write behind thread for audit cache store using coherence</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>    
+  <Advisory>
+    <Name>Oracle SOA Cache Store for delievery Messages</Name>
+    <Health>IGNORE</Health>
+    <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.DeliveryMessageCacheStore</Keyword>
+    <Descrp>Oracle SOA write behind thread for delivery messages using coherence</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle SOA Cache Store for XML document</Name>
+    <Health>IGNORE</Health>
+    <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.XmlDocumentCacheStore</Keyword>
+    <Descrp>Oracle SOA write behind thread for xml document using coherence</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>          
+  <Advisory>
+    <Name>Oracle SOA Cache Store for invoke messages</Name>
+    <Health>IGNORE</Health>
+    <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.InvokeMessageCacheStore</Keyword>
+    <Descrp>Oracle SOA write behind thread for invoke messages using coherence</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory> 
+  <Advisory>
+    <Name>Oracle SOA Cache Store for delivery subscription</Name>
+    <Health>IGNORE</Health>
+    <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.DeliverySubscriptionCacheStore</Keyword>
+    <Descrp>Oracle SOA write behind thread for delivery subscription using coherence</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory> 
+  <Advisory>
+    <Name>Oracle SOA Cache Store for cube instance</Name>
+    <Health>IGNORE</Health>
+    <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.CubeInstanceCacheStore</Keyword>
+    <Descrp>Oracle SOA write behind thread for cube instance using coherence</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle SOA Infra</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.soa.tracking</Keyword>
+    <Descrp>Oracle SOA Instance Tracking</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>        
+  <Advisory>
+    <Name>Oracle AIA Session Pool</Name>
+    <Health>IGNORE</Health>
+    <Keyword>oracle.apps.aia.core.sessionpool</Keyword>
+    <Descrp>Oracle AIA Session Pool Manager Thread</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>       
+  <Advisory>
+    <Name>Oracle Mediator</Name>
+    <Health>IGNORE</Health>
+    <Keyword>oracle.tip.mediator.common.listener.AbstractWorker</Keyword>
+    <Descrp>Oracle Mediator worker thread running</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>   
+  <Advisory>
+    <Name>Oracle EDN</Name>
+    <Health>IGNORE</Health>
+    <Keyword>oracle.integration.platform.blocks.event.saq.SAQBusinessEventBus</Keyword>
+    <Descrp>Oracle EDN-DB uses Oracle AQ DB as backing store</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory> 
+  <Advisory>
+    <Name>Oracle EDN</Name>
+    <Health>IGNORE</Health>
+    <Keyword>oracle.integration.platform.blocks.event.jms.JmsQueueBusinessEventBus</Keyword>
+    <Descrp>Oracle EDN-JMS uses WLS JMS as backing store</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle EDN</Name>
+    <Health>IGNORE</Health>
+    <Keyword>oracle.integration.platform.blocks.event.jms2.EdnJmsConnectionFactory</Keyword>
+    <Descrp>Oracle EDN uses WLS JMS as backing store</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>   
+  <Advisory>
+    <Name>Oracle EDN</Name>
+    <Health>IGNORE</Health>
+    <Keyword>oracle.integration.platform.blocks.event.jms2.EdnAqConnectionFactory</Keyword>
+    <Descrp>Oracle EDN uses AQ JMS as backing store</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>              
+  <Advisory>
+    <Name>MDS</Name>
+    <Health>IGNORE</Health>
+    <Keyword>oracle.mds</Keyword>
+    <Descrp>MDS Thread</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>   
+  <Advisory>
+    <Name>BPEL Execution</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.collaxa.cube.engine.ejb.impl.bpel.BPELEngineBean,com.collaxa.cube.engine.ejb.impl.bpel.BPELDispatcherBean</Keyword>		         
+    <Descrp>BPEL Engine execution</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>BPEL Engine Overloaded</Name>
+    <Health>WARNING</Health>
+    <Keyword>BPELEngineBlocked</Keyword>		         
+    <Descrp>BPEL Engine overloaded</Descrp>
+    <Advice>Possible BPEL Engine overloaded or slow if you see the same thread blocked in subsequence thread dumps, please review the stack trace and server logs, and check the all timeout settings, number of threads and the target system is able to handle the load</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>BPEL Audit Trail</Name>
+    <Health>NORMAL</Health>
+    <Keyword>com.collaxa.cube.engine.ejb.impl.bpel.BPELAuditTrailBean</Keyword>		         
+    <Descrp>For BPEL Audit Trail</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>    
+  <Advisory>
+    <Name>Oracle SOA Coherence Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.coherence</Keyword>		         
+    <Descrp>Oracle SOA Cloud Adapter running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Oracle SOA FTP Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.ftp</Keyword>		         
+    <Descrp>Oracle SOA FTP Adapter running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Oracle SOA LDAP Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.ldap</Keyword>		         
+    <Descrp>Oracle SOA LDAP Adapter running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>  
+  <Advisory>
+    <Name>Oracle SOA MQ Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.mq</Keyword>		         
+    <Descrp>Oracle SOA MQ Adapter running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle SOA MSMQ Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.msmq</Keyword>		         
+    <Descrp>Oracle SOA MSMQ Adapter running</Descrp>
+    <Advice>Normal</Advice>      
+  </Advisory>              
+  <Advisory>
+    <Name>Oracle SOA Socket Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.socket</Keyword>		         
+    <Descrp>Oracle SOA Socket Adapter running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>Oracle SOA UMS Adapter</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.adapter.ums</Keyword>		         
+    <Descrp>Oracle SOA UMS Adapter running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory> 
+  <Advisory>
+    <Name>DVM and XRef</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.dvm</Keyword>		         
+    <Descrp>Oracle SOA DVM and XRef</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>HTTP Client Contention</Name>
+    <Health>FATAL</Health>
+    <Keyword>HTTP Client Contention</Keyword>		         
+    <Descrp>HTTP requests using HTTPClient may cause a Heap retention and in consequence an OutOfMemory</Descrp>
+    <Advice>Please reivew: SOA 11g: "STUCK" Threads due to Contention in the Classes HTTPClient/StreamDemultiplexor Result in Server Performance Issues (Doc ID 1564631.1)</Advice>
+  </Advisory>              
+  <Advisory>
+    <Name>DMS Collector</Name>
+    <Health>FATAL</Health>
+    <Keyword>DMS Collector Stucked</Keyword>		         
+    <Descrp>Related to the DMS metrics engine, and probably proportional to having a lot of active managed servers.</Descrp>
+    <Advice>If have a very high transactional throughput or disruption, then the JVM needs the headroom to process this in addition to the inherent DMS metrics load. Apply patch for Bug 16298679 - DMS METRIC SAMPLER HAS PERFORMANCE BOTTLENECK.  The patch has significantly improved behaviour,and with the memory increase and some other limited JRockit tuning, The admin server shuold be stable.</Advice>
+  </Advisory>
+  <Advisory>
+    <Name>BPEL XPATH Function</Name>
+    <Health>FATAL</Health>
+    <Keyword>BPELXPATHFUNCTIONRESOLVER Stucked</Keyword>		         
+    <Descrp>The issue has been identified in Bug:11778352 and is caused by the HashMap.get method call not thread safe  in BPELXPATHFUNCTIONRESOLVER</Descrp>
+    <Advice>Apply Patch:13353142</Advice>
+  </Advisory> 
+  <Advisory>
+    <Name>Cluster Deployment</Name>
+    <Health>FATAL</Health>
+    <Keyword>Cluster Deployment Stucked</Keyword>		         
+    <Descrp>You are unable to deploy a SOA composite in a clustered environment.</Descrp>
+    <Advice>The problem is likely to be caused by incorrect Coherence configuration. Please refer to support note: 1437883.1 -</Advice>
+  </Advisory> 
+  <Advisory>
+    <Name>Oracle MFT Idle Thread</Name>
+    <Health>IGNORE</Health>
+    <Keyword>Oracle MFT Idle Thread</Keyword>
+    <Descrp>MFT Idle Thread</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>    
+  <Advisory>
+    <Name>Oracle MFT Thread</Name>
+    <Health>NORMAL</Health>
+    <Keyword>oracle.tip.mft</Keyword>
+    <Descrp>MFT Thread running</Descrp>
+    <Advice>Normal</Advice>
+  </Advisory>      
+  </tlogic:AdvisoryMap>

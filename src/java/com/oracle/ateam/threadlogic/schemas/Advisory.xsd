@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:tlogic="http://java.net/projects/threadlogic" 
+targetNamespace="http://java.net/projects/threadlogic" 
+xmlns="http://com.oracle.ateam/tda-ateam" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified"
+>
+
+
+	<xs:element name="Advisory" >
+		<xs:complexType>
+			<xs:sequence>	
+				<xs:element name="Keyword" type="xs:string" />		
+				<xs:element name="Descrp" type="xs:string" />
+				<xs:element name="Pattern" type="xs:string" />
+				<xs:element name="IsCodePattern" type="xs:boolean" />
+				<xs:element name="Advice"  type="xs:string"  />
+				<xs:element name="HealthLevel"  type="xs:string"  />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>	
+
+	<xs:element name="HealthLevel">
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="IGNORE"/>
+				<xs:enumeration value="NORMAL"/>
+				<xs:enumeration value="WATCH"/>
+				<xs:enumeration value="WARNING"/>
+				<xs:enumeration value="FATAL"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element >
+	
+	<xs:element name="AdvisoryList">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="tlogic:Advisory" minOccurs="1" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>	
+</xs:schema>

@@ -1,0 +1,75 @@
+<html>
+<Head><Title> ThreadLogic v2.0 </Title></Head>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="Style">
+<body bgcolor="ffffff">
+
+<h2>ThreadLogic (version 2.0) </h2>
+
+<h3>Date: Sept 1, 2014</h3>
+
+Note: This is the version 2.0 release of the software
+
+This is a release version.
+
+<h3>Changes in this release</h3>
+<ol>
+<li>Enhanced to read context data for SOA 12c, if you want to know how to generate the diagnostic dumps with context data using WLST, please read this <a href="https://blogs.oracle.com/soaproactive/entry/diagnostics_enhancements_in_soa_suite">blog</a></li>
+<li>Enhanced to display composite/flow id in thread list, it will display composite/flow name and instance/flow id</li>
+<li>Added advisories to recognize SOA 12c thread </li>
+<li>Added advisories to recognize SOA resequencer thread </li>
+<li>Added composite id or flow id from the context data when displaying composite name</li>
+<li>Added separate thread group for Oracle MFT and include thread advisories for MFT</li>
+<li>Added advisories to recognize EDN thread </li>
+<li>Added advisories to recognize DVM and XRef thread </li>
+<li>Added advisories to recognize the following adapter thread:</li>
+<ul>
+	<li>Oracle SOA Coherence Adapter</li>
+	<li>Oracle SOA FTP Adapter</li>
+	<li>Oracle SOA LDAP Adapter</li>
+	<li>Oracle SOA MQ Adapter</li>
+	<li>Oracle SOA MSMQ Adapter</li>
+	<li>Oracle SOA Socket Adapter</li>
+	<li>Oracle SOA MSMQ Adapter</li>
+	<li>Oracle SOA UMS Adapter</li>
+</ul>	
+<li>Fixed thread parser failed to parse thread dump generated using WLST dump sample for SOA 12c</li>
+<li>Fixed thread dump line number not display properly after reading the context data</li>	
+<li>Fixed multiple keywords in the advisories not displayed properly</li>
+<li>Fixed IBM JDK Parser when parsing thread info pattern matching failed</li>
+</ol>
+
+<h3>Changes since 0.9 </h3>
+
+<ul>
+<li>Full support for partial thread dumps that miss beginning markers (like Full Thread Dump or FULL THREAD DUMP) that would normally result in failures</li>
+<li>Support for WLST generated thread dumps</li>
+<li>Cache the thread data instead of reparsing thread repeatedly so that sorting does not suffer for names/advisories</li>
+<li>Clean up Thread Dump & ThreadGroup overview page display</li>
+<li>Excluding [ACTIVE]/[STUCK] labels during by thread names</li>
+<li>Support parsing of partial thread name labels for Sun & JRockit Parsers.</li>
+<li>Cleaned up sorting based on thread name, thread ids, nids.</li>
+<li>Reset Min Default filter level to IGNORE as users are forgetting about it and report not seeing threads although the numbers are listed.</li>
+<li>Fixed search by thread name for various models.</li>
+<li>Reduced diagnostic logging during thread parsing.</li>
+<li>Added support for external reference of Advisory & Group Definitions files</li>
+<li>Use -Dthreadlogic.advisories=directory... command line argument to pick custom advisories from a named directory (in addition to packaged advisories).</li>
+<li>Use -Dthreadlogic.groups=directory... command line argument to pick customized group definitions from a named directory (instead of predefined groups).</li>
+<li>Support for reporting thread group data as a column within thread model as well as in merged view.</li>
+<li>Fixed wrong tagging of parked threads as blocked threads.</li>
+<li>Added OSB related advisories & enhanced OSB thread grouping</li>
+<li>Optimized searches for timestamp</li>
+<li>Enhanced the various (JRockit/IBM, enhancing Hotspot) parsers to report the timestamp and jvm version within thread dumps and also in the Merged view to report the timestamp during thread comparison.</li>
+<li>Remove the JconsolePlugin service file</li>
+<li>Cleanup some html output.  Only need one set of html/body tags in the htmlPane.</li>
+<li>Fixed: Advisory should be a tooltip popup</li>
+<li>Fixed: Saving/loading session.</li>
+<li>Added support for multi-line pattern for advisories as well as documented the usage inside AdvisoryMap.xml.</li>
+<li>Included pure coherence threads into Top WLS grouping which got missed out earlier.</li>
+<li>Updated HotCallPattern & Filter to ignore lock ids which will break pattern matching for threads displaying same code execution and added additional Advisories for OSB and updated other advisory entries...</li>
+<li>Added advisories for OSB, Oracle DMS, MBean server queries</li>
+<li>Excluded AQ adapter threads from Oracle Framework thread group</li>
+</ul>
+
+
+Report problems, ask questions and submit suggestions in the <a href="http://java.net/projects/threadlogic/forums">ThreadLogic forum</a>
+

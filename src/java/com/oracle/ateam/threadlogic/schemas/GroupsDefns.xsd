@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:tlogic="http://java.net/projects/threadlogic" 
+targetNamespace="http://java.net/projects/threadlogic" 
+xmlns="http://java.net/projects/threadlogic" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified"
+>
+
+	<xs:element name="ComplexGroup"  >
+	
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="tlogic:Name" />		
+				<xs:element name="Visible" type="xs:boolean"/>
+				<xs:element name="Inclusions"  type="tlogic:subGroups" minOccurs="0" />
+				<xs:element name="Exclusions"  type="tlogic:subGroups" minOccurs="0" />
+        <xs:element ref="tlogic:ExcludeFromAdvisory" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="SimpleGroup" >
+		<xs:complexType>
+			<xs:sequence>	
+				<xs:element ref="tlogic:Name" />		
+				<xs:element name="Visible" type="xs:boolean" />
+				<xs:element name="Inclusion" type="xs:boolean" />
+				<xs:element ref="tlogic:MatchLocation" />
+				<xs:element name="PatternList" >
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Pattern" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+        <xs:element ref="tlogic:ExcludeFromAdvisory" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>	
+
+	<xs:complexType  name="subGroups">
+		<xs:sequence>
+			<xs:element name="SimpleGroupId" type="xs:string" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:element name="GroupsDefn">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="Name" />
+				<xs:element ref="tlogic:SimpleGroup" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="tlogic:ComplexGroup" minOccurs="0" maxOccurs="unbounded"/>				
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>	
+	<xs:element name="MatchLocation">
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="name"/>
+				<xs:enumeration value="stack"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element >
+
+	<xs:element name="ExcludedAdvisories" >
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="AdvisoryId" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element >
+
+		<xs:simpleType name="groupName" >
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="WLS Groups"/>
+				<xs:enumeration value="Non WLS Groups"/>
+			</xs:restriction>
+		</xs:simpleType>
+	<xs:element name="Name" type="xs:string"/>
+</xs:schema>
