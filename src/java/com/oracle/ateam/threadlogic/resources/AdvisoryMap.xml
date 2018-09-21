@@ -14,7 +14,7 @@ Advisory is used to tag threads that match or display certain characteristics
 The behavior might be coming from the thread (name/stack/state) or a combination of conditions (like multiple threads blocked for same lock or it got marked as STUCK etc). Each of the advisory has an associated health level that can be used to filter/analyze or build on for further analysis.
 
 Each Advisory entry has a Name, Health, Keyword (pattern to search against), Description and Advice
-The Name is used as short id/reference to an Advice 
+The Name is used as short id/reference to an Advice
 The Health can be one of the following - IGNORE, NORMAL, WATCH, WARNING, FATAL (increasing level of severity)
 The Thread with a certain set of advisories is marked with the health level that matches the most severe of its tagged advisories.
 Similarly, the most severe advisory across multiple threads in the thread group are promoted to the group and so on to the Thread dump
@@ -29,17 +29,17 @@ Example:
 		<Descrp>Using Native IO via Select or Poll</Descrp>
 		<Advice>Ignore</Advice>
 	</Advisory>
-  
+
 Use . (period) instead of / package paths in the keyword entry.
 Use wildcard as needed; Use . (period character) for escaping $, ?, _ etc.
 
 The advisory is a match for a thread when the keyword search against the thread is successful.
-There can be multiple keywords separated by a ", ". 
+There can be multiple keywords separated by a ", ".
 For example:
 
 <Advisory>
   <Name>DB Execute</Name>
-  <Health>WATCH</Health>    
+  <Health>WATCH</Health>
   <Keyword>PreparedStatement.execute, Statement.executeQuery</Keyword>
   <Descrp>Executing operation or query on DB</Descrp>
   <Advice>Check/Monitor Database SQL Executions if it takes longer and also check for socket connection disruption to database if thread continues to show same pattern</Advice>
@@ -50,12 +50,12 @@ In above example, there are 2 keywords (PreparedStatement.execute and Statement.
 The next entry is the Descrp which is a just a textual description of the advisory
 The last entry is the Advice - as to actions or solutions can be applied.
 
-For multi-line pattern, use PatternA.*PatternB to match against all lines that start off 
+For multi-line pattern, use PatternA.*PatternB to match against all lines that start off
 with PatternA with some content in the middle and ending with PatternB.
 Use with caution as it can do greedy grab of everything within the specified patterns.
 Example:
 
-  
+
 The Name of the advice can be used within the GroupDefns to downgrade certain advisories for specific thread groups.
 Ensure the Advice Name in AdvisoryMap matches with the AdvisoryId inside GroupDefns.
 Example:
@@ -72,7 +72,7 @@ Example:
   <ExcludedAdvisories>
     <AdvisoryId>DB Execute</AdvisoryId>
     <AdvisoryId>Socket Read</AdvisoryId>
-  </ExcludedAdvisories>        
+  </ExcludedAdvisories>
 </ComplexGroup>
 
 In the above example, DB Execute and Socket Read Advisories are excluded for the thread group: Oracle AQ Adapter
@@ -84,7 +84,7 @@ If '&' is really required, use &amp;
 -->
 
 
-<tlogic:AdvisoryMap xmlns:tlogic="http://java.net/projects/threadlogic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+<tlogic:AdvisoryMap xmlns:tlogic="http://java.net/projects/threadlogic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns="http://java.net/projects/threadlogic">
   <Advisory>
     <Name>WLS Synchronous JMS Receiver</Name>
@@ -96,7 +96,7 @@ xmlns="http://java.net/projects/threadlogic">
   <Advisory>
     <Name>JMS Producer Flow control</Name>
     <Health>WARNING</Health>
-    <Keyword>weblogic.jms.client.JMSProducer.doFlowControl</Keyword>		         
+    <Keyword>weblogic.jms.client.JMSProducer.doFlowControl</Keyword>
     <Descrp>Producer message flow is controlled (slowed down)</Descrp>
     <Advice>Try to maintain equilibrium between producers and consumers by speeding up consumers or slowing down producers; Tune the flow control configuration parameters as needed </Advice>
   </Advisory>
@@ -239,7 +239,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>afjca15.AbstractResourceAdapter.endpointDeactivation</Keyword>
     <Descrp>IWay Adapter Endpoint Deactivation invoked</Descrp>
     <Advice>IWay Adapter endpoint is getting deactivated, there would be service disruption,; Ensure the call completes by checking in successive thread dumps</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Stellent WCM</Name>
     <Health>NORMAL</Health>
@@ -288,7 +288,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>com.bea.wli.sb.pipeline.RouterCallback.onReceiveResponse</Keyword>
     <Descrp>OSB handling response</Descrp>
     <Advice>Normal OSB response handling</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>OSB Proxy waiting for response</Name>
     <Health>WATCH</Health>
@@ -302,7 +302,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>com.bea.wli.sb.service.resultcache.ResultCache.get</Keyword>
     <Descrp>OSB attempting to lookup cached service response from Coherence layer</Descrp>
     <Advice>OSB is attempting to check for a cached service response from Coherence layer,; Should return immediately and not get into waiting or blocked state</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>OSB Service Response save in cache </Name>
     <Health>NORMAL</Health>
@@ -316,21 +316,21 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>stages.transform.runtime.JavaCalloutRuntimeStep</Keyword>
     <Descrp>OSB Proxy service invoking Java Callout</Descrp>
     <Advice>Normal java callout activity</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>XPath Contention</Name>
     <Health>WARNING</Health>
     <Keyword>a java.lang.Class for org.apache.xmlbeans.impl.store.Path, org.apache.xmlbeans.impl.store.Path.getCompiledPath</Keyword>
     <Descrp>Apache XMLBeans might be hitting static synchronized method during xpath execution</Descrp>
     <Advice>Apply Bug #9727796 if threads appear blocked in xpath compilation</Advice>
-  </Advisory> 
+  </Advisory>
   <Advisory>
     <Name>WLS JMS Paging</Name>
     <Health>WARNING</Health>
     <Keyword>mesaging.kernel.internal.PagingImpl</Keyword>
     <Descrp>WebLogic JMS paging messages to disk</Descrp>
     <Advice>
-       WLS might have started paging message to disk either because consumers cannot keep up with producers and messages have started accumulating increasing memory pressure or for temporary storage due to delayed delivery; Paging will slow down performance; Increase, speed up or tune consumers or use flow controls/quotas to slow down producers and in-flow rates; Or increase number of servers to share the load. 
+       WLS might have started paging message to disk either because consumers cannot keep up with producers and messages have started accumulating increasing memory pressure or for temporary storage due to delayed delivery; Paging will slow down performance; Increase, speed up or tune consumers or use flow controls/quotas to slow down producers and in-flow rates; Or increase number of servers to share the load.
     </Advice>
   </Advisory>
   <Advisory>
@@ -412,7 +412,7 @@ xmlns="http://java.net/projects/threadlogic">
   </Advisory>
   <Advisory>
     <Name>DB Execute</Name>
-    <Health>WATCH</Health>    
+    <Health>WATCH</Health>
     <Keyword>Statement.execute, Statement.fetch</Keyword>
     <Descrp>Executing operation or query on DB</Descrp>
     <Advice>Check/Monitor Database SQL Executions if it takes longer and also check for socket connection disruption to database; if the thread continues to show same pattern or remains stuck (use AWR reports to debug)</Advice>
@@ -501,7 +501,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Descrp>WLS JMS Cluster has undergone some change - either change (add/drop) in cluster membership or change in consumers/producers. This can be seen during cluster start when members join the cluster. Can signify cluster instability or messaging. </Descrp>
     <Advice>Ensure cluster members or clients are not getting added/dropped too frequently after cluster has been up. Turn ON Cluster and JMS related debugs if there are repeat drop in clients</Advice>
   </Advisory>
-  
+
   <Advisory>
     <Name>SOAP outbound calls from SOA</Name>
     <Health>NORMAL</Health>
@@ -676,7 +676,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>DeploymentServerService.start</Keyword>
     <Descrp>Deployment Service has been started</Descrp>
     <Advice>Server bringing up deployment service. Deployments should complete in a finite time. Precompile application bits with the correct server version ahead of deployment if possible to speed up deployment time</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>JSP Compilation</Name>
     <Health>NORMAL</Health>
@@ -690,7 +690,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>weblogic.jsp.internal.client.JobWaiter.blockUntilFinished</Keyword>
     <Descrp>JSP compilation job blocking request</Descrp>
     <Advice>Thread waiting for jsp compilation to finish. Precompile application bits and JPSs against the correct server version ahead of deployment if possible</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>WLS App undeployment</Name>
     <Health>WATCH</Health>
@@ -775,7 +775,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>Parallel GC Threads</Keyword>
     <Descrp>Large number of Parallel GC Threads used by JVM</Descrp>
     <Advice>Reduce number of Parallel GC Threads, based on number of CPU/Cores and JVMs running on the host machine; Use -XXgcthreads:N for JRockit and -XX:ParallelGCThreads=N for HotSpot to limit number of parallel GC threads. Recommended # of GC Threads = (# of CPUs x # of Hardware Threads per core)/(# of JVMs on same machine). Example: Exalogic node 12 core, hyperthreaded means 24 hardware threads, and 2 JVMs imply 12 ParallelGC threads for each JVM</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Waiting for Event while blocking others</Name>
     <Health>WARNING</Health>
@@ -824,7 +824,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.poll</Keyword>
     <Descrp>Poll for data/cache entry from remote Coherence members</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Coherence waiting for EventQueue to drain</Name>
     <Health>WARNING</Health>
@@ -866,7 +866,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>oracle.tip.adapter.aq.*AbstractDequeueAgent</Keyword>
     <Descrp>AQ Message dequeuing</Descrp>
     <Advice>Normal AQ message dequeue thread</Advice>
-  </Advisory> 
+  </Advisory>
   <Advisory>
     <Name>AQ JMS Consumer</Name>
     <Health>NORMAL</Health>
@@ -894,28 +894,28 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>oracle.tip.mediator.dispatch.db.DBContainerIdManager</Keyword>
     <Descrp>Oracle Mediator container id refresh wait</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Oracle Mediator Locker</Name>
     <Health>NORMAL</Health>
     <Keyword>oracle.tip.mediator.common.listener.DBLocker</Keyword>
     <Descrp>Oracle Mediator locker thread locking the message for worker thread processing</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>    
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA Cluster Node Heartbeat Locker</Name>
     <Health>NORMAL</Health>
     <Keyword>com.collaxa.cube.cluster.ClusterService</Keyword>
     <Descrp>Oracle SOA cluster node heartbeat service maintaining all cluster nodes heartbeat</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>   
+  </Advisory>
   <Advisory>
     <Name>Threaddump generation</Name>
     <Health>IGNORE</Health>
     <Keyword>racle.dfw.sampling.DumpSampling</Keyword>
     <Descrp>Threaddump generation</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>   
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA JMS Adapter</Name>
     <Health>NORMAL</Health>
@@ -929,7 +929,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>oracle.tip.adapter.db.inbound,oracle.tip.adapter.db.InboundWork</Keyword>
     <Descrp>Oracle SOA DB Adapter running</Descrp>
     <Advice>Normal</Advice>
-  </Advisory> 
+  </Advisory>
   <Advisory>
     <Name>Oracle Mediator waiting</Name>
     <Health>NORMAL</Health>
@@ -943,7 +943,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>oracle.tip.mediator.service,oracle.tip.mediator.serviceEngine.MediatorServiceEngine</Keyword>
     <Descrp>Oracle Mediator Service running</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>	
+  </Advisory>
   <Advisory>
     <Name>Oracle Mediator Resequencer</Name>
     <Health>WATCH</Health>
@@ -957,35 +957,35 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>oracle.tip.resequencer.threadpool.WorkerThread</Keyword>
     <Descrp>Oracle Mediator resequencer worker thread</Descrp>
     <Advice>Mediator resequencer under stress, please check the number of worker threads configured in EM and the target system log, this might be due to target system is slow</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Oracle Mediator Resequencer</Name>
     <Health>WATCH</Health>
     <Keyword>oracle.tip.mediator.resequencer.ResequencerDBLocker</Keyword>
     <Descrp>Oracle Mediator resequencer locker thread</Descrp>
     <Advice>Mediator resequencer locker thread, there will be only 1 resequencer db locker thread to lock the group, if it is under stress or slow, please check the database performance</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Oracle Mediator Resequencer</Name>
     <Health>WATCH</Health>
     <Keyword>oracle.tip.resequencer.threadpool.ResequencerDBLocker, oracle.tip.resequencer.threadpool.AbstractLocker</Keyword>
     <Descrp>Oracle Mediator resequencer locker thread</Descrp>
     <Advice>Mediator resequencer locker thread, there will be only 1 resequencer db locker thread to lock the group, if it is under stress or slow, please check the database performance</Advice>
-  </Advisory>    
+  </Advisory>
   <Advisory>
     <Name>Oracle Mediator Resequencer</Name>
     <Health>NORMAL</Health>
     <Keyword>oracle.tip.resequencer</Keyword>
     <Descrp>Oracle Mediator resequencer thread</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>     
+  </Advisory>
   <Advisory>
     <Name>WLS Persistent Store Thread</Name>
     <Health>NORMAL</Health>
     <Keyword>weblogic.store.internal.PersistentStoreImpl.getOutstandingWork</Keyword>
     <Descrp>Thread handling WLS Persistent Store</Descrp>
     <Advice>Normal thread handling wls file based persistence</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>WLS StoreIO Writes</Name>
     <Health>NORMAL</Health>
@@ -1000,7 +1000,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Descrp>WLS starting recovery of persistent stores (JMS filestores or default stores) at startup</Descrp>
     <Advice>The recovery will affect server startup based on number of messasges in the jms stores; compact JMS file stores if possible before restart; Refer to JMS Documentation on weblogic.store.Admin utility</Advice>
   </Advisory>
-  
+
   <Advisory>
     <Name>WLS NM Client</Name>
     <Health>NORMAL</Health>
@@ -1035,8 +1035,8 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>WriteLock.lock</Keyword>
     <Descrp>Thread attempting to acquire java concurrent Write Lock</Descrp>
     <Advice>
-      Treat it as blocked thread; Check if the thread continues in Parked state or acquired the lock; 
-    Use -XX:+PrintConcurrentLocks to print the details of locks; Enable jvm flag -XX:+UseMembar if threads are blocked for Reentrant locks with OSB   
+      Treat it as blocked thread; Check if the thread continues in Parked state or acquired the lock;
+    Use -XX:+PrintConcurrentLocks to print the details of locks; Enable jvm flag -XX:+UseMembar if threads are blocked for Reentrant locks with OSB
     </Advice>
   </Advisory>
   <Advisory>
@@ -1210,7 +1210,7 @@ xmlns="http://java.net/projects/threadlogic">
   <Advisory>
     <Name>WLS Replicated Session Secondary</Name>
     <Health>NORMAL</Health>
-    <Keyword>ReplicatedSessionData.update</Keyword>             
+    <Keyword>ReplicatedSessionData.update</Keyword>
     <Descrp>WLS webapp is using replicated session (in clustered instance)</Descrp>
     <Advice>Normal, HTTP Session is replicated on secondary</Advice>
   </Advisory>
@@ -1297,7 +1297,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>com.sun.hss.domain.util.spawn.UNIXProcess.waitForProcessExit</Keyword>
     <Descrp>Thread waiting for death of spawned off process</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Sun xVM Appliance Details</Name>
     <Health>NORMAL</Health>
@@ -1337,7 +1337,7 @@ xmlns="http://java.net/projects/threadlogic">
     <Name>NIOMuxer Bug 13962335 </Name>
     <Health>WARNING</Health>
     <!--
-		<Keyword>sun.nio.ch.SocketDispatcher.read.*sun.nio.ch.SocketChannelImpl.read.*NIOSocketMuxer.*MuxableSocketT3.connect</Keyword> 
+		<Keyword>sun.nio.ch.SocketDispatcher.read.*sun.nio.ch.SocketChannelImpl.read.*NIOSocketMuxer.*MuxableSocketT3.connect</Keyword>
     -->
     <Keyword>NIOSocketMuxer.*MuxableSocketT3.connect</Keyword>
     <Descrp>Check if WLS NIOMuxer is blocked for long, attempting to read from an unreachable endpoint, which can lead to stuck thread and severe Server Hang situations</Descrp>
@@ -1370,74 +1370,74 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>com.ibm.mq.jmqi.remote.internal.system.RemoteConnection.sendTSH.*MQSession.close</Keyword>
     <Descrp>Threads communicating with MQ Series might go into wait state for long periods on closure of connections possibly due to shared conversations in MQ 7; Disable shared conversations if threads appear to hang or stay in wait state for long.</Descrp>
     <Advice>Set the Sharing Conversation property of the Server Connection Channel to zero on MQ Series. Refer to Oracle Support Note Doc ID 1511617.1 or IBM Documentation on Shared Conversations </Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>ONS Event Wait</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.ons.NotificationQueue.dequeue</Keyword>		         
+    <Keyword>oracle.ons.NotificationQueue.dequeue</Keyword>
     <Descrp>Thread waiting for ONS Event</Descrp>
     <Advice>Normal ONS event thread with Gridlink </Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Cavisson SQL Dump</Name>
     <Health>WARNING</Health>
-    <Keyword>com.cavisson.ndutils.NDSys.dumpSQL</Keyword>		         
+    <Keyword>com.cavisson.ndutils.NDSys.dumpSQL</Keyword>
     <Descrp>Cavisson capturing SQL dump; can introduce bottleneck among threads and degrade perf</Descrp>
     <Advice>Remove or disable Cavisson SQL dump instrumentation </Advice>
   </Advisory>
   <Advisory>
     <Name>BTM Instrumentation</Name>
     <Health>WATCH</Health>
-    <Keyword>com.amberpoint.nanoagent</Keyword>		         
+    <Keyword>com.amberpoint.nanoagent</Keyword>
     <Descrp>Heavy code instrumentation or dynamic discovery can introduce overhead, slowness or degrade perf under heavy loads</Descrp>
     <Advice>Disable BTM Amberpoint code instrumentation on perf degrade or slowness</Advice>
   </Advisory>
   <Advisory>
     <Name>UCP Pool Conn</Name>
     <Health>WATCH</Health>
-    <Keyword>UCPRACModuleImpl.getConnection</Keyword>		         
+    <Keyword>UCPRACModuleImpl.getConnection</Keyword>
     <Descrp>Trying to get jdbc connection from UCP Gridlink pool for RAC</Descrp>
     <Advice>If multiple threads appear with this pattern, set to Seconds to Trust Idle connection to 10 or 15 seconds, enable Pinned-to-thread and apply Bug# 17038851</Advice>
   </Advisory>
   <Advisory>
     <Name>OJDL Logging</Name>
     <Health>WATCH</Health>
-    <Keyword>oracle.core.ojdl.logging.ODLLogger</Keyword>		         
+    <Keyword>oracle.core.ojdl.logging.ODLLogger</Keyword>
     <Descrp>Verbose logging levels in OJDL can slow down threads</Descrp>
     <Advice>If multiple threads appear in blocked state waiting for lock during OJDL logging, set the logging level to less verbose (ex: ERROR instead of INFO) </Advice>
   </Advisory>
   <Advisory>
     <Name>BPEL wait for Response</Name>
     <Health>NORMAL</Health>
-    <Keyword>com.collaxa.cube.engine.delivery.DeliveryService.getResult</Keyword>		         
+    <Keyword>com.collaxa.cube.engine.delivery.DeliveryService.getResult</Keyword>
     <Descrp>Waiting for service response</Descrp>
     <Advice>If its a long invocation, try to use async model</Advice>
   </Advisory>
   <Advisory>
     <Name>BPEL Execution</Name>
     <Health>NORMAL</Health>
-    <Keyword>com.collaxa.cube.engine.ejb.impl.bpel.BPELDeliveryBean</Keyword>		         
+    <Keyword>com.collaxa.cube.engine.ejb.impl.bpel.BPELDeliveryBean</Keyword>
     <Descrp>BPELDelivery Bean execution for sync processes</Descrp>
     <Advice>Normal</Advice>
   </Advisory>
   <Advisory>
     <Name>BPEL Outbound WS Invoke</Name>
     <Health>NORMAL</Health>
-    <Keyword>com.collaxa.cube.ws.WSInvocationManager.invoke</Keyword>		         
+    <Keyword>com.collaxa.cube.ws.WSInvocationManager.invoke</Keyword>
     <Descrp>BPEL Layer invoking external Web Service</Descrp>
     <Advice>Normal</Advice>
   </Advisory>
   <Advisory>
     <Name>Oracle DMS</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.dms</Keyword>		         
+    <Keyword>oracle.dms</Keyword>
     <Descrp>Oracle DMS Thread</Descrp>
     <Advice>Normal</Advice>
   </Advisory>
   <Advisory>
     <Name>Apache TSCCM ConnectionPool blockage</Name>
     <Health>WARNING</Health>
-    <Keyword>org.apache.http.impl.conn.tsccm.ConnPoolByRoute.getEntryBlocking</Keyword>		         
+    <Keyword>org.apache.http.impl.conn.tsccm.ConnPoolByRoute.getEntryBlocking</Keyword>
     <Descrp>Apache limits number of concurrent outbound http clients to 2 for a given destination and overall to 20</Descrp>
     <Advice>Modify Apache Tsccm code to allow higher number of connections</Advice>
   </Advisory>
@@ -1510,14 +1510,14 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>oracle.dfw</Keyword>
     <Descrp>Oracle Diagnostic Framework</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA Cache Store for Audit</Name>
     <Health>IGNORE</Health>
     <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.AuditCachestore</Keyword>
     <Descrp>Oracle SOA write behind thread for audit cache store using coherence</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>    
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA Cache Store for delievery Messages</Name>
     <Health>IGNORE</Health>
@@ -1531,21 +1531,21 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.XmlDocumentCacheStore</Keyword>
     <Descrp>Oracle SOA write behind thread for xml document using coherence</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>          
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA Cache Store for invoke messages</Name>
     <Health>IGNORE</Health>
     <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.InvokeMessageCacheStore</Keyword>
     <Descrp>Oracle SOA write behind thread for invoke messages using coherence</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory> 
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA Cache Store for delivery subscription</Name>
     <Health>IGNORE</Health>
     <Keyword>com.collaxa.cube.persistence.dao.impl.coherence.cachestore.DeliverySubscriptionCacheStore</Keyword>
     <Descrp>Oracle SOA write behind thread for delivery subscription using coherence</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory> 
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA Cache Store for cube instance</Name>
     <Health>IGNORE</Health>
@@ -1559,28 +1559,28 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>oracle.soa.tracking</Keyword>
     <Descrp>Oracle SOA Instance Tracking</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>        
+  </Advisory>
   <Advisory>
     <Name>Oracle AIA Session Pool</Name>
     <Health>IGNORE</Health>
     <Keyword>oracle.apps.aia.core.sessionpool</Keyword>
     <Descrp>Oracle AIA Session Pool Manager Thread</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>       
+  </Advisory>
   <Advisory>
     <Name>Oracle Mediator</Name>
     <Health>IGNORE</Health>
     <Keyword>oracle.tip.mediator.common.listener.AbstractWorker</Keyword>
     <Descrp>Oracle Mediator worker thread running</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>   
+  </Advisory>
   <Advisory>
     <Name>Oracle EDN</Name>
     <Health>IGNORE</Health>
     <Keyword>oracle.integration.platform.blocks.event.saq.SAQBusinessEventBus</Keyword>
     <Descrp>Oracle EDN-DB uses Oracle AQ DB as backing store</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory> 
+  </Advisory>
   <Advisory>
     <Name>Oracle EDN</Name>
     <Health>IGNORE</Health>
@@ -1594,138 +1594,145 @@ xmlns="http://java.net/projects/threadlogic">
     <Keyword>oracle.integration.platform.blocks.event.jms2.EdnJmsConnectionFactory</Keyword>
     <Descrp>Oracle EDN uses WLS JMS as backing store</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>   
+  </Advisory>
   <Advisory>
     <Name>Oracle EDN</Name>
     <Health>IGNORE</Health>
     <Keyword>oracle.integration.platform.blocks.event.jms2.EdnAqConnectionFactory</Keyword>
     <Descrp>Oracle EDN uses AQ JMS as backing store</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>              
+  </Advisory>
   <Advisory>
     <Name>MDS</Name>
     <Health>IGNORE</Health>
     <Keyword>oracle.mds</Keyword>
     <Descrp>MDS Thread</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>   
+  </Advisory>
   <Advisory>
     <Name>BPEL Execution</Name>
     <Health>NORMAL</Health>
-    <Keyword>com.collaxa.cube.engine.ejb.impl.bpel.BPELEngineBean,com.collaxa.cube.engine.ejb.impl.bpel.BPELDispatcherBean</Keyword>		         
+    <Keyword>com.collaxa.cube.engine.ejb.impl.bpel.BPELEngineBean,com.collaxa.cube.engine.ejb.impl.bpel.BPELDispatcherBean</Keyword>
     <Descrp>BPEL Engine execution</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>BPEL Engine Overloaded</Name>
     <Health>WARNING</Health>
-    <Keyword>BPELEngineBlocked</Keyword>		         
+    <Keyword>BPELEngineBlocked</Keyword>
     <Descrp>BPEL Engine overloaded</Descrp>
     <Advice>Possible BPEL Engine overloaded or slow if you see the same thread blocked in subsequence thread dumps, please review the stack trace and server logs, and check the all timeout settings, number of threads and the target system is able to handle the load</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>BPEL Audit Trail</Name>
     <Health>NORMAL</Health>
-    <Keyword>com.collaxa.cube.engine.ejb.impl.bpel.BPELAuditTrailBean</Keyword>		         
+    <Keyword>com.collaxa.cube.engine.ejb.impl.bpel.BPELAuditTrailBean</Keyword>
     <Descrp>For BPEL Audit Trail</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>    
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA Coherence Adapter</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.tip.adapter.coherence</Keyword>		         
+    <Keyword>oracle.tip.adapter.coherence</Keyword>
     <Descrp>Oracle SOA Cloud Adapter running</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA FTP Adapter</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.tip.adapter.ftp</Keyword>		         
+    <Keyword>oracle.tip.adapter.ftp</Keyword>
     <Descrp>Oracle SOA FTP Adapter running</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA LDAP Adapter</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.tip.adapter.ldap</Keyword>		         
+    <Keyword>oracle.tip.adapter.ldap</Keyword>
     <Descrp>Oracle SOA LDAP Adapter running</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>  
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA MQ Adapter</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.tip.adapter.mq</Keyword>		         
+    <Keyword>oracle.tip.adapter.mq</Keyword>
     <Descrp>Oracle SOA MQ Adapter running</Descrp>
     <Advice>Normal</Advice>
   </Advisory>
   <Advisory>
     <Name>Oracle SOA MSMQ Adapter</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.tip.adapter.msmq</Keyword>		         
+    <Keyword>oracle.tip.adapter.msmq</Keyword>
     <Descrp>Oracle SOA MSMQ Adapter running</Descrp>
-    <Advice>Normal</Advice>      
-  </Advisory>              
+    <Advice>Normal</Advice>
+  </Advisory>
   <Advisory>
     <Name>Oracle SOA Socket Adapter</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.tip.adapter.socket</Keyword>		         
+    <Keyword>oracle.tip.adapter.socket</Keyword>
     <Descrp>Oracle SOA Socket Adapter running</Descrp>
     <Advice>Normal</Advice>
   </Advisory>
   <Advisory>
     <Name>Oracle SOA UMS Adapter</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.tip.adapter.ums</Keyword>		         
+    <Keyword>oracle.tip.adapter.ums</Keyword>
     <Descrp>Oracle SOA UMS Adapter running</Descrp>
     <Advice>Normal</Advice>
-  </Advisory> 
+  </Advisory>
   <Advisory>
     <Name>DVM and XRef</Name>
     <Health>NORMAL</Health>
-    <Keyword>oracle.tip.dvm</Keyword>		         
+    <Keyword>oracle.tip.dvm</Keyword>
     <Descrp>Oracle SOA DVM and XRef</Descrp>
     <Advice>Normal</Advice>
   </Advisory>
   <Advisory>
     <Name>HTTP Client Contention</Name>
     <Health>FATAL</Health>
-    <Keyword>HTTP Client Contention</Keyword>		         
+    <Keyword>HTTP Client Contention</Keyword>
     <Descrp>HTTP requests using HTTPClient may cause a Heap retention and in consequence an OutOfMemory</Descrp>
     <Advice>Please reivew: SOA 11g: "STUCK" Threads due to Contention in the Classes HTTPClient/StreamDemultiplexor Result in Server Performance Issues (Doc ID 1564631.1)</Advice>
-  </Advisory>              
+  </Advisory>
   <Advisory>
     <Name>DMS Collector</Name>
     <Health>FATAL</Health>
-    <Keyword>DMS Collector Stucked</Keyword>		         
+    <Keyword>DMS Collector Stucked</Keyword>
     <Descrp>Related to the DMS metrics engine, and probably proportional to having a lot of active managed servers.</Descrp>
     <Advice>If have a very high transactional throughput or disruption, then the JVM needs the headroom to process this in addition to the inherent DMS metrics load. Apply patch for Bug 16298679 - DMS METRIC SAMPLER HAS PERFORMANCE BOTTLENECK.  The patch has significantly improved behaviour,and with the memory increase and some other limited JRockit tuning, The admin server shuold be stable.</Advice>
   </Advisory>
   <Advisory>
     <Name>BPEL XPATH Function</Name>
     <Health>FATAL</Health>
-    <Keyword>BPELXPATHFUNCTIONRESOLVER Stucked</Keyword>		         
+    <Keyword>BPELXPATHFUNCTIONRESOLVER Stucked</Keyword>
     <Descrp>The issue has been identified in Bug:11778352 and is caused by the HashMap.get method call not thread safe  in BPELXPATHFUNCTIONRESOLVER</Descrp>
     <Advice>Apply Patch:13353142</Advice>
-  </Advisory> 
+  </Advisory>
   <Advisory>
     <Name>Cluster Deployment</Name>
     <Health>FATAL</Health>
-    <Keyword>Cluster Deployment Stucked</Keyword>		         
+    <Keyword>Cluster Deployment Stucked</Keyword>
     <Descrp>You are unable to deploy a SOA composite in a clustered environment.</Descrp>
     <Advice>The problem is likely to be caused by incorrect Coherence configuration. Please refer to support note: 1437883.1 -</Advice>
-  </Advisory> 
+  </Advisory>
   <Advisory>
     <Name>Oracle MFT Idle Thread</Name>
     <Health>IGNORE</Health>
     <Keyword>Oracle MFT Idle Thread</Keyword>
     <Descrp>MFT Idle Thread</Descrp>
     <Advice>Ignore</Advice>
-  </Advisory>    
+  </Advisory>
   <Advisory>
     <Name>Oracle MFT Thread</Name>
     <Health>NORMAL</Health>
     <Keyword>oracle.tip.mft</Keyword>
     <Descrp>MFT Thread running</Descrp>
     <Advice>Normal</Advice>
-  </Advisory>      
+  </Advisory>
+  <Advisory>
+    <Name>Idle Task Thread</Name>
+    <Health>IGNORE</Health>
+    <Keyword>java.util.concurrent.LinkedBlockingQueue.poll</Keyword>
+    <Descrp>Idle Task Thread waiting for an event</Descrp>
+    <Advice>Ignore</Advice>
+  </Advisory>
   </tlogic:AdvisoryMap>

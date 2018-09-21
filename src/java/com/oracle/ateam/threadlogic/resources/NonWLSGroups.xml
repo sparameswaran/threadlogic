@@ -44,7 +44,7 @@ Using individual pattern entries for easier read:
 			<Pattern>Code Optimization Thread</Pattern>
 			<Pattern>VM Thread</Pattern>
 		</PatternList>
-	</SimpleGroup>      
+	</SimpleGroup>
 
 Or using | as delimiter to provide a choice of patterns:
 	<SimpleGroup>
@@ -57,7 +57,7 @@ Or using | as delimiter to provide a choice of patterns:
 		</PatternList>
   <ExcludedAdvisories>
     <AdvisoryId>Socket Read</AdvisoryId>
-  </ExcludedAdvisories>    
+  </ExcludedAdvisories>
 	</SimpleGroup>
 
 # MatchLocation used to locate for a matching pattern against thread stack or thread name : only allowed values are stack or name
@@ -90,10 +90,10 @@ Or using | as delimiter to provide a choice of patterns:
   <ExcludedAdvisories>
     <AdvisoryId>DB Execute</AdvisoryId>
     <AdvisoryId>Socket Read</AdvisoryId>
-  </ExcludedAdvisories>        
+  </ExcludedAdvisories>
 </ComplexGroup>
 
-# In above sample, the Complex Group "Oracle AQ Adapter" uses 2 underlying simple groups. 
+# In above sample, the Complex Group "Oracle AQ Adapter" uses 2 underlying simple groups.
 # All threads belong to the simple group referred by "Oracle AQ AdapterTemp" should be included while all threads matching the "Oracle SOA DFW" should be excluded.
 
 # Also both Simple and Complex Groups can exclude certain advisories - as in downgrade those advisories from overall thread health consideration
@@ -102,7 +102,7 @@ Or using | as delimiter to provide a choice of patterns:
 
 -->
 
-<tlogic:GroupsDefn xmlns:tlogic="http://java.net/projects/threadlogic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+<tlogic:GroupsDefn xmlns:tlogic="http://java.net/projects/threadlogic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns="http://java.net/projects/threadlogic">
   <Name>Non WLS Groups</Name>
   <SimpleGroup>
@@ -141,6 +141,25 @@ xmlns="http://java.net/projects/threadlogic">
     </PatternList>
   </SimpleGroup>
   <SimpleGroup>
+    <Name>Tomcat Task Threads</Name>
+    <Visible>true</Visible>
+    <Inclusion>true</Inclusion>
+    <MatchLocation>stack</MatchLocation>
+    <PatternList>
+      <Pattern>org.apache.tomcat.util.threads.TaskThread</Pattern>
+    </PatternList>
+  </SimpleGroup>
+  <SimpleGroup>
+    <Name>Tomcat NIO Threads</Name>
+    <Visible>true</Visible>
+    <Inclusion>true</Inclusion>
+    <MatchLocation>stack</MatchLocation>
+    <PatternList>
+      <Pattern>org.apache.tomcat.util.net.NioBlockingSelector</Pattern>
+      <Pattern>org.apache.tomcat.util.net.NioEndpoint</Pattern>
+    </PatternList>
+  </SimpleGroup>
+  <SimpleGroup>
     <Name>IWay Adapter</Name>
     <Visible>true</Visible>
     <Inclusion>true</Inclusion>
@@ -159,15 +178,6 @@ xmlns="http://java.net/projects/threadlogic">
     </PatternList>
   </SimpleGroup>
   <SimpleGroup>
-    <Name>Other Poller</Name>
-    <Visible>true</Visible>
-    <Inclusion>true</Inclusion>
-    <MatchLocation>stack</MatchLocation>
-    <PatternList>
-      <Pattern>SelectorImpl.select</Pattern>
-    </PatternList>
-  </SimpleGroup>
-  <SimpleGroup>
     <Name>Tibco JMS Listener</Name>
     <Visible>true</Visible>
     <Inclusion>true</Inclusion>
@@ -177,8 +187,8 @@ xmlns="http://java.net/projects/threadlogic">
     </PatternList>
     <ExcludedAdvisories>
       <AdvisoryId>Socket Read</AdvisoryId>
-    </ExcludedAdvisories>           
-  </SimpleGroup>  
+    </ExcludedAdvisories>
+  </SimpleGroup>
   <SimpleGroup>
     <Name>LDAP</Name>
     <Visible>true</Visible>
@@ -190,7 +200,7 @@ xmlns="http://java.net/projects/threadlogic">
     </PatternList>
     <ExcludedAdvisories>
       <AdvisoryId>Socket Read</AdvisoryId>
-    </ExcludedAdvisories>    
+    </ExcludedAdvisories>
   </SimpleGroup>
   <SimpleGroup>
     <Name>RMI TCP Threads</Name>
@@ -203,7 +213,7 @@ xmlns="http://java.net/projects/threadlogic">
     </PatternList>
     <ExcludedAdvisories>
       <AdvisoryId>Socket Read</AdvisoryId>
-    </ExcludedAdvisories>    
+    </ExcludedAdvisories>
   </SimpleGroup>
   <SimpleGroup>
     <Name>Java Timer</Name>
@@ -232,10 +242,10 @@ xmlns="http://java.net/projects/threadlogic">
       <Pattern>oracle.repackaged.ons</Pattern>
       <Pattern>oracle.repackaged.ucp</Pattern>
     </PatternList>
-    <ExcludedAdvisories>			
+    <ExcludedAdvisories>
       <AdvisoryId>Socket Read</AdvisoryId>
     </ExcludedAdvisories>
-  </SimpleGroup>  
+  </SimpleGroup>
   <SimpleGroup>
     <Name>Quartz Pool</Name>
     <Visible>true</Visible>
@@ -259,7 +269,7 @@ xmlns="http://java.net/projects/threadlogic">
     </PatternList>
     <ExcludedAdvisories>
       <AdvisoryId>Socket Read</AdvisoryId>
-    </ExcludedAdvisories>     
+    </ExcludedAdvisories>
   </SimpleGroup>
   <SimpleGroup>
     <Name>Wily</Name>
@@ -276,8 +286,8 @@ xmlns="http://java.net/projects/threadlogic">
     </PatternList>
     <ExcludedAdvisories>
       <AdvisoryId>Socket Read</AdvisoryId>
-    </ExcludedAdvisories>     
-  </SimpleGroup>  
+    </ExcludedAdvisories>
+  </SimpleGroup>
   <SimpleGroup>
     <Name>EHCache</Name>
     <Visible>true</Visible>
@@ -286,18 +296,18 @@ xmlns="http://java.net/projects/threadlogic">
     <PatternList>
       <Pattern>net.sf.ehcache.store.DiskStore</Pattern>
     </PatternList>
-  </SimpleGroup> 
+  </SimpleGroup>
   <SimpleGroup>
     <Name>Adventnet SNMP Agent</Name>
     <Visible>true</Visible>
     <Inclusion>true</Inclusion>
     <MatchLocation>stack</MatchLocation>
-    <PatternList>			
-      <Pattern>com.adventnet</Pattern>      
+    <PatternList>
+      <Pattern>com.adventnet</Pattern>
     </PatternList>
     <ExcludedAdvisories>
       <AdvisoryId>Socket Read</AdvisoryId>
-    </ExcludedAdvisories>     
+    </ExcludedAdvisories>
   </SimpleGroup>
   <SimpleGroup>
     <Name>Sun Norm Updaters</Name>
@@ -309,8 +319,8 @@ xmlns="http://java.net/projects/threadlogic">
     </PatternList>
     <ExcludedAdvisories>
       <AdvisoryId>Socket Read</AdvisoryId>
-    </ExcludedAdvisories>     
-  </SimpleGroup>  
+    </ExcludedAdvisories>
+  </SimpleGroup>
   <SimpleGroup>
     <Name>Sun HSS Grouping Manager Threads</Name>
     <Visible>true</Visible>
@@ -318,7 +328,7 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>name</MatchLocation>
     <PatternList>
       <Pattern>grouping-manager-attr-thread</Pattern>
-    </PatternList>    
+    </PatternList>
   </SimpleGroup>
   <SimpleGroup>
     <Name>Sun JMX Client Notification Forwarders</Name>
@@ -330,7 +340,7 @@ xmlns="http://java.net/projects/threadlogic">
     </PatternList>
     <ExcludedAdvisories>
       <AdvisoryId>Socket Read</AdvisoryId>
-    </ExcludedAdvisories> 
+    </ExcludedAdvisories>
   </SimpleGroup>
   <SimpleGroup>
     <Name>ZK Web Framework Component Library</Name>
@@ -339,8 +349,8 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>stack</MatchLocation>
     <PatternList>
       <Pattern>org.zkoss.zk</Pattern>
-    </PatternList>    
-  </SimpleGroup>  
+    </PatternList>
+  </SimpleGroup>
   <SimpleGroup>
     <Name>Grizzly Threads</Name>
     <Visible>true</Visible>
@@ -348,8 +358,8 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>stack</MatchLocation>
     <PatternList>
       <Pattern>com.sun.grizzly</Pattern>
-    </PatternList>    
-  </SimpleGroup> 
+    </PatternList>
+  </SimpleGroup>
   <SimpleGroup>
     <Name>HK2 Transactions Notifiers</Name>
     <Visible>true</Visible>
@@ -357,8 +367,8 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>stack</MatchLocation>
     <PatternList>
       <Pattern>org.jvnet.hk2.config.Transactions.Notifier</Pattern>
-    </PatternList>    
-  </SimpleGroup> 
+    </PatternList>
+  </SimpleGroup>
   <SimpleGroup>
     <Name>Catalina Container Background Processors</Name>
     <Visible>true</Visible>
@@ -366,8 +376,18 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>stack</MatchLocation>
     <PatternList>
       <Pattern>org.apache.catalina.core.ContainerBase.ContainerBackgroundProcessor</Pattern>
-    </PatternList>    
-  </SimpleGroup> 
+    </PatternList>
+  </SimpleGroup>
+  <SimpleGroup>
+    <Name>Datastax Threads</Name>
+    <Visible>true</Visible>
+    <Inclusion>true</Inclusion>
+    <MatchLocation>stack</MatchLocation>
+    <PatternList>
+      <Pattern>com.datastax.shaded.netty.util.DefaultThreadFactory</Pattern>
+      <Pattern>com.datastax.shaded.netty.util.concurrent.DefaultThreadFactory</Pattern>
+    </PatternList>
+  </SimpleGroup>
   <SimpleGroup>
     <Name>JMX Client Heartbeat</Name>
     <Visible>true</Visible>
@@ -375,8 +395,8 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>name</MatchLocation>
     <PatternList>
       <Pattern>JMX client heartbeat</Pattern>
-    </PatternList>    
-  </SimpleGroup> 
+    </PatternList>
+  </SimpleGroup>
   <SimpleGroup>
     <Name>JMX Server Connection Timeout</Name>
     <Visible>true</Visible>
@@ -384,16 +404,7 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>name</MatchLocation>
     <PatternList>
       <Pattern>JMX server connection timeout</Pattern>
-    </PatternList>    
-  </SimpleGroup>
-  <SimpleGroup>
-    <Name>Log4J</Name>
-    <Visible>true</Visible>
-    <Inclusion>true</Inclusion>
-    <MatchLocation>name</MatchLocation>
-    <PatternList>
-      <Pattern>Log4J </Pattern>
-    </PatternList>    
+    </PatternList>
   </SimpleGroup>
   <!--
   <SimpleGroup>
@@ -403,7 +414,7 @@ xmlns="http://java.net/projects/threadlogic">
 		<MatchLocation>stack</MatchLocation>
 		<PatternList>
 			<Pattern>com.sun.xvm</Pattern>
-		</PatternList>    
+		</PatternList>
 	</SimpleGroup>
   -->
   <SimpleGroup>
@@ -413,7 +424,7 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>name</MatchLocation>
     <PatternList>
       <Pattern>UCP-worker-thread</Pattern>
-    </PatternList>    
+    </PatternList>
   </SimpleGroup>
   <SimpleGroup>
     <Name>Sun Cacao</Name>
@@ -422,7 +433,7 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>stack</MatchLocation>
     <PatternList>
       <Pattern>com.sun.cacao</Pattern>
-    </PatternList>    
+    </PatternList>
   </SimpleGroup>
   <SimpleGroup>
     <Name>Sun HSS Domain Temp</Name>
@@ -432,7 +443,7 @@ xmlns="http://java.net/projects/threadlogic">
     <PatternList>
       <Pattern>com.sun.hss.domain</Pattern>
       <Pattern>com.sun.hss.services</Pattern>
-    </PatternList>    
+    </PatternList>
   </SimpleGroup>
   <ComplexGroup>
     <Name>Sun HSS Domain</Name>
@@ -445,8 +456,8 @@ xmlns="http://java.net/projects/threadlogic">
       <SimpleGroupId>Sun Norm Updaters</SimpleGroupId>
       <SimpleGroupId>Grizzly Threads</SimpleGroupId>
       <SimpleGroupId>Sun Cacao</SimpleGroupId>
-    </Exclusions>        
-  </ComplexGroup>  
+    </Exclusions>
+  </ComplexGroup>
   <SimpleGroup>
     <Name>Iona CORBA</Name>
     <Visible>true</Visible>
@@ -454,7 +465,7 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>stack</MatchLocation>
     <PatternList>
       <Pattern>com.iona</Pattern>
-    </PatternList>    
+    </PatternList>
   </SimpleGroup>
   <SimpleGroup>
     <Name>Acsera</Name>
@@ -463,7 +474,7 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>stack</MatchLocation>
     <PatternList>
       <Pattern>com.acsera.javaagent</Pattern>
-    </PatternList>    
+    </PatternList>
   </SimpleGroup>
   <SimpleGroup>
     <Name>Cavisson</Name>
@@ -472,7 +483,7 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>stack</MatchLocation>
     <PatternList>
       <Pattern>com.cavisson</Pattern>
-    </PatternList>    
+    </PatternList>
   </SimpleGroup>
   <SimpleGroup>
     <Name>ODI</Name>
@@ -482,7 +493,7 @@ xmlns="http://java.net/projects/threadlogic">
     <PatternList>
       <Pattern>oracle.odi</Pattern>
       <Pattern>com.sunopsis</Pattern>
-    </PatternList>    
+    </PatternList>
   </SimpleGroup>
   <SimpleGroup>
     <Name>Stellent</Name>
@@ -491,6 +502,33 @@ xmlns="http://java.net/projects/threadlogic">
     <MatchLocation>stack</MatchLocation>
     <PatternList>
       <Pattern>com.stellent.cis</Pattern>
-    </PatternList>    
+    </PatternList>
+  </SimpleGroup>
+  <SimpleGroup>
+    <Name>Apache Log4j</Name>
+    <Visible>true</Visible>
+    <Inclusion>true</Inclusion>
+    <MatchLocation>stack</MatchLocation>
+    <PatternList>
+      <Pattern>org.apache.log4j</Pattern>
+    </PatternList>
+  </SimpleGroup>
+  <SimpleGroup>
+    <Name>Apache Logging</Name>
+    <Visible>true</Visible>
+    <Inclusion>true</Inclusion>
+    <MatchLocation>stack</MatchLocation>
+    <PatternList>
+      <Pattern>org.apache.juli</Pattern>
+    </PatternList>
+  </SimpleGroup>
+  <SimpleGroup>
+    <Name>Other Poller</Name>
+    <Visible>true</Visible>
+    <Inclusion>true</Inclusion>
+    <MatchLocation>stack</MatchLocation>
+    <PatternList>
+      <Pattern>SelectorImpl.select</Pattern>
+    </PatternList>
   </SimpleGroup>
 </tlogic:GroupsDefn>

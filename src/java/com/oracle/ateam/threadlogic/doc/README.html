@@ -1,17 +1,25 @@
 <html>
-<Head><Title> ThreadLogic v2.0 </Title></Head>
+<Head><Title> ThreadLogic v2.5 </Title></Head>
 <link rel="stylesheet" type="text/css" href="stylesheet.css" title="Style">
 <body bgcolor="ffffff">
 
-<h2>ThreadLogic (version 2.0) </h2>
+<h2>ThreadLogic (version 2.5.2) </h2>
 
-<h3>Date: Sept 1, 2014</h3>
+<h3>Date: Sept 21, 2018</h3>
 
-Note: This is the version 2.0 release of the software
+Note: This is the version 2.5 release of the software
 
 This is a release version.
 
 <h3>Changes in this release</h3>
+	<ol>
+		<li>Handle OpenJDK Thread Dumps</li>
+		<li>Added advisories to recognize Tomcat threads </li>
+		<li>Added advisories to recognize Datastax threads </li>
+		<li>Added advisories to recognize Apache Logging threads </li>
+	</ol>
+
+<h3>Changes since 2.0 </h3>
 <ol>
 <li>Enhanced to read context data for SOA 12c, if you want to know how to generate the diagnostic dumps with context data using WLST, please read this <a href="https://blogs.oracle.com/soaproactive/entry/diagnostics_enhancements_in_soa_suite">blog</a></li>
 <li>Enhanced to display composite/flow id in thread list, it will display composite/flow name and instance/flow id</li>
@@ -31,9 +39,9 @@ This is a release version.
 	<li>Oracle SOA Socket Adapter</li>
 	<li>Oracle SOA MSMQ Adapter</li>
 	<li>Oracle SOA UMS Adapter</li>
-</ul>	
+</ul>
 <li>Fixed thread parser failed to parse thread dump generated using WLST dump sample for SOA 12c</li>
-<li>Fixed thread dump line number not display properly after reading the context data</li>	
+<li>Fixed thread dump line number not display properly after reading the context data</li>
 <li>Fixed multiple keywords in the advisories not displayed properly</li>
 <li>Fixed IBM JDK Parser when parsing thread info pattern matching failed</li>
 </ol>
@@ -70,6 +78,4 @@ This is a release version.
 <li>Excluded AQ adapter threads from Oracle Framework thread group</li>
 </ul>
 
-
-Report problems, ask questions and submit suggestions in the <a href="http://java.net/projects/threadlogic/forums">ThreadLogic forum</a>
-
+Report problems, ask questions and submit suggestions in the <a href="https://github.com/sparameswaran/threadlogic/issues">ThreadLogic Issues github Page</a>

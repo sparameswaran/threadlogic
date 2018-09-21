@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2012 egross, sabha.
- * 
+ *
  * ThreadLogic - parses thread dumps and provides analysis/guidance
  * It is based on the popular TDA tool.  Thank you!
- * 
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
@@ -45,7 +45,7 @@ import java.util.Map;
 
 /**
  * Factory for the dump parsers.
- * 
+ *
  * @author irockel
  */
 public class DumpParserFactory {
@@ -59,7 +59,7 @@ public class DumpParserFactory {
 
   /**
    * get the singleton instance of the factory
-   * 
+   *
    * @return singleton instance
    */
   public static DumpParserFactory get() {
@@ -74,7 +74,7 @@ public class DumpParserFactory {
    * parses the given logfile for thread dumps and return a proper jdk parser
    * (either for Sun VM's or for JRockit/Bea VM's) and initializes the
    * DumpParser with the stream.
-   * 
+   *
    * @param dumpFileStream
    *          the file stream to use for dump parsing.
    * @param threadStore
@@ -102,23 +102,23 @@ public class DumpParserFactory {
       while (bis.ready() && (currentDumpParser == null)) {
         bis.mark(readAheadLimit);
         String line = bis.readLine();
-        dm.checkForDateMatch(line);          
+        dm.checkForDateMatch(line);
         if (dm.isDefaultMatches()) {
           dateEntry = line;
           foundDate = true;
-          
+
           // Save the very last date entry before we hit the Thread Dump Markers
           lastSavedDm = dm;
         }
-        
+
         if (line.trim().equals(""))
           continue;
-        
+
         if (WrappedSunJDKParser.checkForSupportedThreadDump(line)) {
           currentDumpParser = new WrappedSunJDKParser(bis, threadStore, bis.getLineNumber(), withCurrentTimeStamp,
               startCounter, lastSavedDm);
 //        } else if (HotspotParser.checkForSupportedThreadDump(line)) {
-//          currentDumpParser = new HotspotParser(bis, threadStore, bis.getLineNumber(), withCurrentTimeStamp, startCounter, lastSavedDm);          
+//          currentDumpParser = new HotspotParser(bis, threadStore, bis.getLineNumber(), withCurrentTimeStamp, startCounter, lastSavedDm);
         } else if (JrockitParser.checkForSupportedThreadDump(line) || HotspotParser.checkForSupportedThreadDump(line)) {
         	// Derek Kam: Need to handle thread dump generated using
 			// WLST for 12c
@@ -129,7 +129,9 @@ public class DumpParserFactory {
 					currentDumpParser = new HotspotParser(bis, threadStore, bis.getLineNumber(), withCurrentTimeStamp, startCounter, lastSavedDm);
 				} else if (line2.trim().indexOf("Oracle JRockit") >= 0) {
 					currentDumpParser = new JrockitParser(bis, threadStore, bis.getLineNumber(), lastSavedDm);
-				}					
+				}	else if (line2.trim().indexOf("OpenJDK") >= 0) {
+					currentDumpParser = new OpenJDKParser(bis, threadStore, bis.getLineNumber(), withCurrentTimeStamp, startCounter, lastSavedDm);
+				}
 			}
         } else if (IBMJDKParser.checkForSupportedThreadDump(line)) {
           currentDumpParser = new IBMJDKParser(bis, threadStore, bis.getLineNumber(), withCurrentTimeStamp, startCounter, lastSavedDm);
@@ -137,13 +139,13 @@ public class DumpParserFactory {
           int supportedJvmType = FallbackParser.checkForSupportedThreadDump(line);
           if (supportedJvmType < 0)
             continue;
-                
+
           // Found some sort of match against the FallbackParser
             currentDumpParser = new FallbackParser(bis, threadStore, bis.getLineNumber(), withCurrentTimeStamp, startCounter, lastSavedDm, supportedJvmType);
 
         }
       }
-      
+
       if ((currentDumpParser != null) && (bis != null)) {
         bis.reset();
       }

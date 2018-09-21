@@ -1,9 +1,9 @@
 /**
  * Copyright (c) 2012 egross, sabha.
- * 
+ *
  * ThreadLogic - parses thread dumps and provides analysis/guidance
  * It is based on the popular TDA tool.  Thank you!
- * 
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the GNU Lesser Public License v2.1
  * which accompanies this distribution, and is available at
@@ -82,10 +82,10 @@ import javax.swing.tree.TreePath;
 /**
  * abstract dump parser class, contains all generic dump parser stuff, which
  * doesn't have any jdk specific parsing code.
- * 
+ *
  * All Dump Parser should extend from this class as it already provides a basic
  * parsing interface.
- * 
+ *
  * @author irockel
  */
 public abstract class AbstractDumpParser implements DumpParser, Serializable {
@@ -120,14 +120,15 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
   protected static final int HOTSPOT_VM = 0;
   protected static final int JROCKIT_VM = 1;
   protected static final int IBM_VM = 2;
-  protected static final int UNKNOWN_VM = 3;
-  protected static final int[] VM_ID_LIST = {HOTSPOT_VM, JROCKIT_VM, IBM_VM, UNKNOWN_VM};
-  protected static final String[] JVM_VENDOR_LIST = {"Sun Hotspot", "Oracle JRockit", "IBM", "Unknown"};
+  protected static final int OPENJDK_VM = 3;
+  protected static final int UNKNOWN_VM = 4;
+  protected static final int[] VM_ID_LIST = {HOTSPOT_VM, JROCKIT_VM, IBM_VM, OPENJDK_VM, UNKNOWN_VM};
+  protected static final String[] JVM_VENDOR_LIST = {"Sun Hotspot", "Oracle JRockit", "IBM", "OpenJDK", "Unknown"};
   protected String jvmVendor = JVM_VENDOR_LIST[JVM_VENDOR_LIST.length - 1];
   protected String jvmVersion;
 
   private static Logger theLogger = CustomLogger.getLogger(AbstractDumpParser.class.getSimpleName());
-  
+
   // Used for deserialization
   public AbstractDumpParser() {
     lineChecker = new LineChecker();
@@ -150,7 +151,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * strip the dump string from a given path
-   * 
+   *
    * @param path
    *          the treepath to check
    * @return dump string, if proper tree path, null otherwise.
@@ -167,7 +168,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * find long running threads.
-   * 
+   *
    * @param root
    *          the root node to use for the result.
    * @param dumpStore
@@ -186,7 +187,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * merge the given dumps.
-   * 
+   *
    * @param root
    *          the root node to use for the result.
    * @param dumpStore
@@ -267,14 +268,14 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
         }
       } else if (dumpName.startsWith("JMX Thread Dump") || dumpName.startsWith("Clipboard")) {
         // Dump generated via jmx mbean server connection in JConsole Plugin function
-        // Format of generated dump: 
+        // Format of generated dump:
         // JMX Thread Dump of com.jrockit.mc.rjmx.internal.MCMBeanServerConnection@341c80d4
         // at 2013-10-06 16:17:50
         tdiID = Integer.parseInt(dumpName.substring(dumpName.lastIndexOf(" ") + 1).replaceAll(":", "").trim());
       }
 
 
-      // Its possible the thread dump got expanded 
+      // Its possible the thread dump got expanded
       // and its internal threads/threadgroups also got selected
       // Ignore such selection
       if (tdiID == null) {
@@ -508,7 +509,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * count lines of input string.
-   * 
+   *
    * @param input
    * @return line count
    */
@@ -526,7 +527,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
   /**
    * generate statistical information concerning the merge on long running
    * thread detection.
-   * 
+   *
    * @param keys
    *          the dump node keys
    * @param prefix
@@ -579,7 +580,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
   /**
    * fix the monitor links for proper navigation to the monitor in the right
    * dump.
-   * 
+   *
    * @param fixString
    *          the string to fix
    * @param dumpName
@@ -595,7 +596,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * create a tree node with the provided information
-   * 
+   *
    * @param top
    *          the parent node the new node should be added to.
    * @param title
@@ -621,7 +622,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
    * create a category entry for a category (categories are "Monitors",
    * "Threads waiting", e.g.). A ThreadInfo instance will be created with the
    * passed information.
-   * 
+   *
    * @param category
    *          the category the node should be added to.
    * @param title
@@ -652,7 +653,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
    * create a category entry for a category (categories are "Monitors",
    * "Threads waiting", e.g.). A ThreadInfo instance will be created with the
    * passed information.
-   * 
+   *
    * @param category
    *          the category the node should be added to.
    * @param tdi
@@ -686,7 +687,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * get the stream to parse
-   * 
+   *
    * @return stream or null if none is set up
    */
   protected LineNumberReader getBis() {
@@ -695,14 +696,14 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * parse the thread tokens for table display.
-   * 
+   *
    * @param title
    */
   protected abstract String[] getThreadTokens(String title);
 
   /**
    * set the stream to parse
-   * 
+   *
    * @param bis
    *          the stream
    */
@@ -720,7 +721,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * retrieve the next node for adding histogram information into the tree.
-   * 
+   *
    * @param root
    *          the root to use for search.
    * @return node to use for append.
@@ -751,7 +752,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * get the maximum size for the mark buffer while reading the log file stream.
-   * 
+   *
    * @return size, default is 16KB.
    */
   protected int getMarkSize() {
@@ -760,7 +761,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * set the maximum mark size.
-   * 
+   *
    * @param markSize
    *          the size to use, default is 16KB.
    */
@@ -771,7 +772,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
   /**
    * specifies the maximum amounts of lines to check if the dump is followed by
    * a class histogram or a deadlock.
-   * 
+   *
    * @return the amount of lines to check, defaults to 10.
    */
   protected int getMaxCheckLines() {
@@ -803,7 +804,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * dump the monitor information
-   * 
+   *
    * @param catMonitors
    * @param catMonitorsLocks
    * @param mmap
@@ -910,7 +911,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
   /**
    * check threads in given thread dump and add appropriate custom categories
    * (if any defined).
-   * 
+   *
    * @param tdi
    *          the thread dump info object.
    */
@@ -1240,10 +1241,10 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
     ThreadInfo mi = (ThreadInfo) threadOrMonitorNode.getUserObject();
 
-    // Don't mark the thread category as having Lot of Waiters 
-    // if the threads are waiting for java.util.concurrent.locks.AbstractQueuedSynchronizer 
+    // Don't mark the thread category as having Lot of Waiters
+    // if the threads are waiting for java.util.concurrent.locks.AbstractQueuedSynchronizer
     /*
-     * 
+     *
      * "pool-3-thread-8" id=91 idx=0x168 tid=22940 prio=5 alive, parked, native_blocked
     -- Parking to wait for: java/util/concurrent/locks/AbstractQueuedSynchronizer$ConditionObject@0x140211ee0
     at jrockit/vm/Locks.park0(J)V(Native Method)
@@ -1254,7 +1255,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
     at java/util/concurrent/LinkedBlockingQueue.take(LinkedBlockingQueue.java:399)
     at java/util/concurrent/ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:947)
     at java/util/concurrent/ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:907)
-     * 
+     *
      */
     if (!mi.getName().contains("java/util/concurrent/locks/AbstractQueuedSynchronizer") && ThreadDumpInfo.areALotOfWaiting(count)) {
       mi.setALotOfWaiting(true);
@@ -1401,7 +1402,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
     return false;
   }
 
-  protected String getNextLine() throws IOException {    
+  protected String getNextLine() throws IOException {
     return getBis().readLine();
   }
 
@@ -1416,7 +1417,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
   /**
    * parse the next thread dump from the stream passed with the constructor.
-   * 
+   *
    * @returns null if no more thread dumps were found.
    */
   public MutableTreeNode parseNext() {
@@ -1584,7 +1585,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
                * "Workmanager: , Version: 0, Scheduled=false, Started=false, Wait time: 0 ms
                * " id=1509 idx=0x84 tid=10346 prio=10 alive, sleeping, native_waiting, daemon
                */
-              // Check if the thread contains "Workmanager:" and ending with " ms" 
+              // Check if the thread contains "Workmanager:" and ending with " ms"
               // In that case, rerun the pattern to get correct thread label
               String additionalLines = readAheadForWMThreadLabels(line);
               if (additionalLines.length() > line.length()) {
@@ -1594,7 +1595,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
               // We are starting a group of lines for a different
               // thread
               // First, flush state for the previous thread (if
-              // any)              
+              // any)
 
               concurrentSyncsFlag = false;
               if (content != null) {
@@ -1689,7 +1690,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
               // position.
               getBis().reset();
               }
-               * 
+               *
                */
 
               //getBis().mark(getMarkSize());
@@ -1770,7 +1771,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
           // first the locks
           // We need to reset the stack trace for those threads that are holders of locks
-          // previously we set the stack trace to be empty as the ownership info was present in a different thread 
+          // previously we set the stack trace to be empty as the ownership info was present in a different thread
           // that is blocked and not directly in the owner thread
           Iterator iterLocks = threadsInMap[MonitorMap.LOCK_THREAD_POS].keySet().iterator();
           while (iterLocks.hasNext()) {
@@ -1779,7 +1780,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
             String stackTrace = (String) threadsInMap[MonitorMap.LOCK_THREAD_POS].get(threadOwner);
             if (stackTrace == null) {
               theLogger.finest("ThreadOwner :" + threadOwner + ", owner stack is null");
-              
+
               // Search for the owner of the lock
               ThreadInfo ownerThread = overallTDI.getThreadByName(threadOwner);
               if (ownerThread != null) {
@@ -1880,7 +1881,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
                 + (line != null ? "Last line read was \"" + line + "\". \n" : ""), "Error during Parsing Thread Dump",
                 JOptionPane.ERROR_MESSAGE);
         retry = true;
-      } catch (InterruptedIOException e) {       
+      } catch (InterruptedIOException e) {
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -1896,7 +1897,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
    * @param line
    * @return
    * @throws java.io.IOException
-   * 
+   *
    */
   protected String readAheadForWMThreadLabels(String line) throws IOException {
     String currentLine = line.trim();
@@ -1904,14 +1905,14 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
       return line;
     }
 
-    // Read further the next line and add it to the current thread title line                
+    // Read further the next line and add it to the current thread title line
     String newLine = null;
     do {
       lineCounter++;
       newLine = getNextLine();
     } while (newLine.trim().equals(""));
 
-    currentLine = line + newLine;    
+    currentLine = line + newLine;
 
     return currentLine;
   }
@@ -1929,7 +1930,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
    * [0x94130000,0x94e68168,0x95060000) PSPermGen total 16384K, used 13145K
    * [0x90130000, 0x91130000, 0x94130000) object space 16384K, 80% used
    * [0x90130000,0x90e06610,0x91130000)
-   * 
+   *
    * @param threadDump
    * @return
    * @throws java.io.IOException
@@ -2006,9 +2007,9 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 	    //
 	    //id         ECID      RID   Context Values
 	    Matcher threadContextInfoMatcher = null;
-	    
-	    //Derek Kam: 12c has an addional elapse time column, the common columns between 12c and 11g are id, ECID and RID, 
-	    //so I removed the Context Values, it should be enough to identify the context info header. 
+
+	    //Derek Kam: 12c has an addional elapse time column, the common columns between 12c and 11g are id, ECID and RID,
+	    //so I removed the Context Values, it should be enough to identify the context info header.
 	    Pattern threadContextInfoPattern = Pattern.compile(".*(" + THREAD_CONTEXT_INFO
 	            + "|id\\s*ECID\\s*RID).*");
 
@@ -2020,7 +2021,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
 	      line = line.trim();
 
-	      // We have reached start of a new thread dump, so stop      
+	      // We have reached start of a new thread dump, so stop
 	      if (this.lineChecker.getFullDump(line) != null) {
 	        theLogger.finest("Breaking now as we hit Full Dump for Current Line: " + line);
 	        return false;
@@ -2036,7 +2037,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 		      } else {
 		      	reachedExactEndOfDump = true;
 		      	getBis().mark(getMarkSize());
-		      } 
+		      }
 	      }
 	       */
 
@@ -2062,9 +2063,9 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
 	        // There will be one statistic line per thread
 	        // Keep going till we reach Thread Context Info banner
-	        // then start parsing ECID and other Context data per thread        
+	        // then start parsing ECID and other Context data per thread
 	        if (!foundContextData) {
-	          // Found begining marker of Thread Context Info 
+	          // Found begining marker of Thread Context Info
 	          foundContextData = (line.indexOf(THREAD_CONTEXT_INFO) > 0);
 
 	          //skip just found Thread Context Info banner and proceed to actual data...
@@ -2098,7 +2099,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 	            // Parse new thread context info
 	            String[] entries = line.trim().split("\\s+");
 	            contextValBuf = new StringBuffer();
-	            
+
 	            //Derek Kam:  12c has five column, Elapsed/ms is new in 12c
 				if (entries.length==5) {
 					switch (entries.length) {
@@ -2152,16 +2153,16 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 	      tdi.addThreadContextData(threadId, contextValBuf.toString());
 	    }
 
-	    // We have hit the end marker for the Thread Context Info 
+	    // We have hit the end marker for the Thread Context Info
 	    // finish parsing
 	    finished = true;
 	    return foundContextData;
-	  }  
-  
-  
+	  }
+
+
   /**
    * check if any dead lock information is logged in the stream
-   * 
+   *
    * @param threadDump
    *          which tree node to add the histogram.
    */
@@ -2577,20 +2578,20 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
 
     /*
      * "Thread-1" prio=6 tid=0x186f4c00 nid=0x1318 waiting on condition
-     * [0x189ff000] java.lang.Thread.State: TIMED_WAITING (sleeping) 
+     * [0x189ff000] java.lang.Thread.State: TIMED_WAITING (sleeping)
      * at java.lang.Thread.sleep(Native Method)
-     * at MyTest.doSomething(MyTest.java:24) 
-     * at MyTest.run(MyTest.java:18) 
-     * - locked <0x04292a30> (a java.lang.Object) 
+     * at MyTest.doSomething(MyTest.java:24)
+     * at MyTest.run(MyTest.java:18)
+     * - locked <0x04292a30> (a java.lang.Object)
      * at java.lang.Thread.run(Thread.java:619)
-     * 
+     *
      * "Thread-0" prio=6 tid=0x186f0400 nid=0x2b28 in Object.wait() [0x1896f000]
-     * java.lang.Thread.State: WAITING (on object monitor) 
-     * java.lang.Object.wait(Native Method) 
-     * - waiting on <0x04292a30> (a java.lang.Object) 
-     * at java.lang.Object.wait(Object.java:485) 
-     * at MyTest.run(MyTest.java:15) 
-     * - locked <0x04292a30> (a java.lang.Object) 
+     * java.lang.Thread.State: WAITING (on object monitor)
+     * java.lang.Object.wait(Native Method)
+     * - waiting on <0x04292a30> (a java.lang.Object)
+     * at java.lang.Object.wait(Object.java:485)
+     * at MyTest.run(MyTest.java:15)
+     * - locked <0x04292a30> (a java.lang.Object)
      * at java.lang.Thread.run(Thread.java:619)
      */
 
@@ -2611,22 +2612,22 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
     // the lock first but released it which was then obtained by Thread-1
     /*
      * "Thread-0" id=12 idx=0x50 tid=9704 prio=5 alive, waiting, native_blocked
-     * -- Waiting for notification on: java/lang/Object@0x101F0B40[fat lock] 
-     * at jrockit/vm/Threads.waitForNotifySignal(JLjava/lang/Object;)Z(Native Method) 
-     * at java/lang/Object.wait(J)V(Native Method) 
-     * at java/lang/Object.wait(Object.java:485) at MyTest.run(MyTest.java:15) 
-     * ^-- Lock released while waiting: java/lang/Object@0x101F0B40[fat lock] 
-     * at java/lang/Thread.run(Thread.java:619) 
-     * at jrockit/vm/RNI.c2java(IIIII)V(Native Method) 
+     * -- Waiting for notification on: java/lang/Object@0x101F0B40[fat lock]
+     * at jrockit/vm/Threads.waitForNotifySignal(JLjava/lang/Object;)Z(Native Method)
+     * at java/lang/Object.wait(J)V(Native Method)
+     * at java/lang/Object.wait(Object.java:485) at MyTest.run(MyTest.java:15)
+     * ^-- Lock released while waiting: java/lang/Object@0x101F0B40[fat lock]
+     * at java/lang/Thread.run(Thread.java:619)
+     * at jrockit/vm/RNI.c2java(IIIII)V(Native Method)
      * -- end of trace
-     * 
+     *
      * "Thread-1" id=13 idx=0x54 tid=7608 prio=5 alive, sleeping, native_waiting
-     * at java/lang/Thread.sleep(J)V(Native Method) 
-     * at MyTest.doSomething(MyTest.java:24) 
-     * at MyTest.run(MyTest.java:18) 
-     * ^-- Holding lock: java/lang/Object@0x101F0B40[fat lock] 
-     * at java/lang/Thread.run(Thread.java:619) 
-     * at jrockit/vm/RNI.c2java(IIIII)V(Native Method) 
+     * at java/lang/Thread.sleep(J)V(Native Method)
+     * at MyTest.doSomething(MyTest.java:24)
+     * at MyTest.run(MyTest.java:18)
+     * ^-- Holding lock: java/lang/Object@0x101F0B40[fat lock]
+     * at java/lang/Thread.run(Thread.java:619)
+     * at jrockit/vm/RNI.c2java(IIIII)V(Native Method)
      * -- end of trace
      */
     // But we dont have to discount it from the owned locks as JRockit logs it
@@ -2664,7 +2665,7 @@ public abstract class AbstractDumpParser implements DumpParser, Serializable {
       java.lang.Thread.State: BLOCKED
       at weblogic.socket.DevPollSocketMuxer.processSockets(DevPollSocketMuxer.java:92)
       - waiting to lock <4de8b404> (a java.lang.String) owned by "ExecuteThread: '2' for queue: 'weblogic.socket.Muxer'" t@242
-       * 
+       *
        */
       entry = entry.replaceAll(" owned by .*", "").trim();
 
